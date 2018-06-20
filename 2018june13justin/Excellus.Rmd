@@ -48,7 +48,7 @@ load(file="final.RData")
 County_Payer<- c('County','Payer')
 visits<- list(
   'Emergency Room'= c('Opioid.ER.visits','Total.ER.visits','ER.visit.rate'),
-  'Inpatient1' =
+  'Inpatient' =
     c('Opioid.Inpatient.visits','Total.Inpatient.visits','Inpatient.visit.rate'),
   'Outpatient' = 
     c('Opioid.Outpatient.visits','Total.Outpatient.visits','Outpatient.visit.rate'),
@@ -63,7 +63,7 @@ levels(Excellus$Payer)[levels(Excellus$Payer)=="Direct Pay Hmo"] <- "Direct Pay 
 levels(Excellus$Payer)[levels(Excellus$Payer)=="Direct Pay Pos"] <- "Direct Pay POS"
 levels(Excellus$Payer)[levels(Excellus$Payer)=="Ssa"] <- "SSA"
 #levels(Excellus$Payer)[levels(Excellus$Payer)=="<Unknown>"] <- "Unknown"
-#remove the Unknown Payer
+#remove the Unknown Payer1
 #Excellus$Payer<- Excellus$Payer[!Excellus$Payer%in%c('<Unknown>')]
 
 #payer <- c('Child Health Plus', 'Commercial', 'Direct Pay HMO', 'Direct Pay POS', 'Family Health Plus', 'Healthy New York','Healthy New York Plus', 'Basic Health Plan', 'Medicaid','Medicare', 'SSA', "Valumed", "Unknown")
