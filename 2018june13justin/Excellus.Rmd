@@ -48,7 +48,7 @@ load(file="final.RData")
 County_Payer<- c('County','Payer')
 visits<- list(
   'Emergency Room'= c('Opioid.ER.visits','Total.ER.visits','ER.visit.rate'),
-  'Inpatient' =
+  'Inpatient1' =
     c('Opioid.Inpatient.visits','Total.Inpatient.visits','Inpatient.visit.rate'),
   'Outpatient' = 
     c('Opioid.Outpatient.visits','Total.Outpatient.visits','Outpatient.visit.rate'),
