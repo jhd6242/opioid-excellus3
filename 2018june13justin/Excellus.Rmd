@@ -498,7 +498,7 @@ Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ a\ County\ _{Year}& = 
 
 \[
 \begin{eqnarray}
-Opioid\ ER\ Visit\ Rate\ for\ a\ Commercial\ payer\ for\ Albany\ _{2015}& = & \frac {37}{36,091}\ *\ 1000\\& \\& \approx & 1.02
+Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ Albany\ _{2015}& = & \frac {37}{36,091}\ *\ 1000\\& \\& \approx & 1.02
 \end{eqnarray}
 \]
 
@@ -520,7 +520,7 @@ Opioid\ ER\ Visit\ Rate\ across\ all\ the\ payer\ for\ a\ County\ _{Year}& = & \
 
 \[
 \begin{eqnarray}
-Opioid\ ER\ Visit\ Rate\ across\ all\ the\ payer\ for\ Albany\ _{Year}& = & \dfrac {37\ +\ 39\ +\ 9\ +\ 3\ +\ 0\ } {(\ 36,091\ +\ 41,299\ +\ 20,079\ +\ 2,384\ +\ 17\ )\ } *\ \ 1000\\& \\& \approx & 0.88
+Opioid\ ER\ Visit\ Rate\ across\ all\ the\ Line\ of\ Business\ for\ Albany\ _{Year}& = & \dfrac {37\ +\ 39\ +\ 9\ +\ 3\ +\ 0\ } {(\ 36,091\ +\ 41,299\ +\ 20,079\ +\ 2,384\ +\ 17\ )\ } *\ \ 1000\\& \\& \approx & 0.88
 \end{eqnarray}
 \]
 
@@ -532,7 +532,7 @@ tags$hr(style="border-color: darkblue")
 
 \[
 \begin{eqnarray}
-Indexed\ Opioid\ ER\ Visit\ Rate\ for\ a\ Commercial\ payer\ for\ a\ County\ _{2015}& = & \frac {Opioid\ ER\ Visit\ Rate\ for\ a\ Commercial\ payer\ for\ a\ County\ _{2015} }{mean\ (Opioid\ ER\ Visit\ Rate\ for\ a\ Commercial\ payer\ across\ all\ the\ Counties\ _{2015} }\ *\ 100\\
+Indexed\ Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ a\ County\ _{2015}& = & \frac {Opioid\ ER\ Visit\ Rate\ for\ a\ Commercial\ payer\ for\ a\ County\ _{2015} }{mean\ (Opioid\ ER\ Visit\ Rate\ for\ a\ Commercial\ payer\ across\ all\ the\ Counties\ _{2015} }\ *\ 100\\
 \end{eqnarray}
 \]
 
