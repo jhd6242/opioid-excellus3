@@ -490,7 +490,7 @@ tags$hr(style="border-color: darkblue")
 
 \[
 \begin{eqnarray}
-Opioid\ ER\ Visit\ Rate\ for\ a\ Line1\ of\ Business\ for\ a\ County\ _{Year}& = & \dfrac {No.\ of\ ER\ visits\ for\ opioid\ abuse\ for\ Line\ of\ Business\ _{Year}\  } {Total\ ER\ visits\ for\ that\ county\ _{Year}}\hspace{10mm} *\ \ 1000\\
+Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ a\ County\ _{Year}& = & \dfrac {No.\ of\ ER\ visits\ for\ opioid\ abuse\ for\ Line\ of\ Business\ _{Year}\  } {Total\ ER\ visits\ for\ that\ county\ _{Year}}\hspace{10mm} *\ \ 1000\\
 \end{eqnarray}
 \]
 
