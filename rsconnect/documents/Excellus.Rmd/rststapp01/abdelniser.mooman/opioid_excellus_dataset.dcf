@@ -1,0 +1,12 @@
+name: opioid_excellus_dataset
+title: Excellus
+username: abdelniser.mooman
+account: abdelniser.mooman
+server: rststapp01
+hostUrl: http://rststapp01:3939/__api__
+appId: 37
+bundleId: 67
+url: http://rststapp01:3939/content/37/
+when: 1513272419.16722
+asMultiple: FALSE
+asStatic: FALSE

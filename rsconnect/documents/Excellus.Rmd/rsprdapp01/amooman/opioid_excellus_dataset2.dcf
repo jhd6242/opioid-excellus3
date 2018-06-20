@@ -1,0 +1,12 @@
+name: opioid_excellus_dataset2
+title: Opioid_Excellus_dataset
+username: amooman
+account: amooman
+server: rsprdapp01
+hostUrl: http://rsprdapp01:3939/__api__
+appId: 86
+bundleId: 211
+url: http://rsprdapp01:3939/content/86/
+when: 1513277191.18359
+asMultiple: FALSE
+asStatic: FALSE

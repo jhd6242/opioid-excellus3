@@ -1,0 +1,12 @@
+name: opioid_test
+title: OPIOID_Test
+username: amooman
+account: amooman
+server: rsprdapp01
+hostUrl: http://rsprdapp01:3939/__api__
+appId: 84
+bundleId: 208
+url: http://rsprdapp01:3939/content/84/
+when: 1513273361.99041
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,0 +1,20 @@
+Table,Columns
+T_CLAIM_LINE_FACT,CLM_ID
+,SRC_APPL_CODE
+,MBR_DIM_SK
+,PRMRY_DIAG_CODE_SK
+,"CLM_SRVC_EFF_DATE_SK,"
+T_HCG_MR_LINE_DIM, HCG_CODE
+,SETTING_DESC
+,Facility_visit (derived variable): This variable value is
+,(a) Emergency Room: if the HCG_CODE is either 13 or 39
+,(b) Inpatient: if the SETTING_DESC = "Inpatient" and HCG_CODE is neither 13 nor 13 nor 39
+,(c) Outpatient: if the SETTING_DESC = "Outpatient" and HCG_CODE is neither 13 nor 39
+,(d) Professional: if the SETTING_DESC = "Professional" and HCG_CODE is neither 13 nor 39
+,(e) Other: else. 
+T_PRODUCT_DIM,BSNS_SGMNT
+MV_CLAIM_FULL_MEMBER_DIM,PRSN_UNIQ_ID
+T_DIAGNOSIS_CODE_DIM,DIAG_CODE
+,ICD_VER
+,Claim_type (derived variable): This variable value is Opioid Claim if the DIAG_CODE is an opioid-related diagnosis code else the variable value is Others for non-opioid related diagnosis code
+

@@ -1,0 +1,13 @@
+name: opioid_excellus_dataset
+title: Opioid_Excellus_dataset
+username: amooman
+account: amooman
+server: rsprdapp01
+hostUrl: http://rsprdapp01:3939/__api__
+appId: 82
+bundleId: 206
+url: http://rsprdapp01:3939/content/82/
+when: 1513272070.4123
+asMultiple: FALSE
+asStatic: FALSE
+additionalFiles: Excellus_dashboard_implementation.R|final_claim.csv

@@ -1,0 +1,1 @@
+grep -vwF Others FINAL_CLAIMS.csv |grep ^2015|awk -F, '{print;x+=}END{print Total  x}'
