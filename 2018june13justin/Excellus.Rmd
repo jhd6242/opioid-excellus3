@@ -679,7 +679,7 @@ The interactive dashboard APP is organized into two section:
 1.  Geospatial mapping of Excellus counties. It consists of four tabs:
 
   
-    1.1. Opioid Epidemic Map: Overall opioid visit rate by grouping each county and payer. This helps to summarize data across multiple years,  multiple payers and different line of business.
+    1.1. Opioid Epidemic Map: Opioid Epidemic Map: Overall opioid visit rate by grouping each county and line of business. This helps to summarize data across multiple years and different line of business.
   
   
     1.2. Dataset: Shows and load the actual dataset used in the app. This helps to summarize data across multiple years and multiple payers.
