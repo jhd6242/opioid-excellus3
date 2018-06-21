@@ -511,7 +511,7 @@ tags$hr(style="border-color: darkblue")
 
 \[
 \begin{eqnarray}
-Opioid\ ER\ Visit\ Rate\ across\ all\ the\ payer\ for\ a\ County\ _{Year}& = & \dfrac {\sum\limits_{i\ \in\  (Commercial,\  Medicaid,\  Medicare,\ Professional,\ Other\ )}\ No.\ of\ ER\ visits\ for\ opioid\ abuse\ _{i,\ Year\ }\  } {\sum\limits_{i\ \in\  (Commercial,\  Medicaid,\  Medicare,\ Professionl,\ Other\ )}\ Total\ ER\ visits\ for\ that\ county\ _{i,\ Year}} *\ \ 1000\\
+Opioid\ ER\ Visit\ Rate\ across\ all\ the\ Line\ of\ Business\ for\ a\ County\ _{Year}& = & \dfrac {\sum\limits_{i\ \in\  (Commercial,\  Medicaid,\  Medicare,\ Professional,\ Other\ )}\ No.\ of\ ER\ visits\ for\ opioid\ abuse\ _{i,\ Year\ }\  } {\sum\limits_{i\ \in\  (Commercial,\  Medicaid,\  Medicare,\ Professionl,\ Other\ )}\ Total\ ER\ visits\ for\ that\ county\ _{i,\ Year}} *\ \ 1000\\
 \end{eqnarray}
 \]
 
