@@ -532,7 +532,7 @@ tags$hr(style="border-color: darkblue")
 
 \[
 \begin{eqnarray}
-Indexed\ Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ a\ County\ _{2015}& = & \frac {Opioid\ ER\ Visit\ Rate\ for\ a\ Commercial\ payer\ for\ a\ County\ _{2015} }{mean\ (Opioid\ ER\ Visit\ Rate\ for\ a\ Commercial\ payer\ across\ all\ the\ Counties\ _{2015} }\ *\ 100\\
+Indexed\ Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ a\ County\ _{2015}& = & \frac {Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ a\ County\ _{2015} }{mean\ (Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ across\ all\ the\ Counties\ _{2015} }\ *\ 100\\
 \end{eqnarray}
 \]
 
@@ -541,7 +541,7 @@ Indexed\ Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ a\ County\ _{
 \
 \[
 \begin{eqnarray}
-Indexed\ Opioid\ ER\ Visit\ Rate\ for\ a\ Commercial\ payer\ for\ Albany\ _{2015}& = & \frac {1.02}{(\ 1.02\ +\ 0.26\ )\ /\ 2 }\ *\ 100\\& \approx &\ 79.68
+Indexed\ Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ Albany\ _{2015}& = & \frac {1.02}{(\ 1.02\ +\ 0.26\ )\ /\ 2 }\ *\ 100\\& \approx &\ 79.68
 \end{eqnarray}
 \]
 
@@ -613,7 +613,7 @@ shinyApp(
       df3<- c[c$variable==visit()[[1]],]
       colnames(df3)[colnames(df3)=='value']<- visit()[[2]]
       
-      x1<- hPlot(x='Year', y=visit()[[2]] ,group='Payer', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'Business Segment')
+      x1<- hPlot(x='Year', y=visit()[[2]] ,group='Payer', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'Line of Business')
       x1$params$width <- 642
       x1$params$height <- 540
       x1
@@ -623,7 +623,7 @@ shinyApp(
   c<- Excellus_all_region
   df3<- c[c$variable==visit()[[1]],]
   
-  x1<- hPlot(`Percent Change`~Year, group='Region', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'For Every Excellus Region ')
+  x1<- hPlot(`Percent Change`~Year, group='Region', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'By Region ')
   x1$params$width <- 642
   x1$params$height <- 540
   x1
@@ -634,7 +634,7 @@ shinyApp(
     c<- Excellus_all_payers
   df3<- c[c$variable==visit()[[1]],]
   
-  x1<- hPlot(`Percent Change`~Year, group='Payer', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'For Every Payer')
+  x1<- hPlot(`Percent Change`~Year, group='Payer', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'Line of Business')
   x1$params$width <- 642
   x1$params$height <- 540
   x1
