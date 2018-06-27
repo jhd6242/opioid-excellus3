@@ -439,8 +439,8 @@ Excellus_regions.polygons <- unionSpatialPolygons(counties_region, counties_regi
 
 library(readxl)
 ICD_codes <- read_excel("ICD codes for Opioids.xlsx")
-colnames(ICD_codes)<- ICD_codes[1,]
-ICD_codes<- ICD_codes[-1,]
+colnames(ICD_codes)<- ICD_codes
+ICD_codes<- ICD_codes
 
 ##Load the SAS logic
 sas_logic <- read.csv("testtable.csv")

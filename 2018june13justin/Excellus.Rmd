@@ -70,7 +70,7 @@ levels(Excellus$Payer)[levels(Excellus$Payer)=="Ssa"] <- "SSA"
 payer <- c('Child Health Plus', 'Commercial', 'Direct Pay HMO', 'Direct Pay POS', 'Family Health Plus', 'Healthy New York','Healthy New York Plus', 'Basic Health Plan', 'Medicaid','Medicare', 'SSA', "Valumed")
 ```
 
-Opioid-related Facility Visits {data-orientation=column}
+Opioid-Related Facility Visits {data-orientation=column}
 =======================================================================
 
 
@@ -113,7 +113,7 @@ ui<- fluidPage(
                   p("Click the button to update the value displayed in the Map Explorer Panel.")                                    
     ),
     
-    absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE, draggable = TRUE, bottom = -20, right = "auto", left = -5, top = "auto", width = 760, height= 10,
+    absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE, draggable = TRUE, bottom = 0 , right = "auto", left = -5, top = "auto", width = 760, height= 10,
                   tags$p(tags$strong(tags$u("Indexed Opioid Visit Rate")),tags$strong(": "), tags$i(tags$span(style="color:red",'Normalized mean for the opioid visit and line of business selected per 1000 people for Excellus counites')))
                   
                   
@@ -359,7 +359,7 @@ shinyApp(ui = ui, server = server)
 ### ![](./tab-filler.png) Dataset
 
 
-#### Opioid-Related Facility Visits in Excellus counties ####{style="text-align:center"}
+#### Opioid-Related Facility Visits in Excellus Counties ####{style="text-align:center"}
 
 #### ####{style="text-align:left"}
 
@@ -384,23 +384,23 @@ renderDataTable({
     
     Excellus_display<- Excellus[, c(1:6,22,7:9,23,10:12,24, 13:15,25, 16:18,26, 19:21, 27 )]
   
-    colnames(Excellus_display)<-c('Year','County', 'Payer',
-                                  'ER Visit Opioid', 'Total ER Visit','Opioid ER Visit rate per 1000','Indexed ER Rate',
-                                  'Opioid Inpatient Visits', 'Total Inpatient Visits','Opioid Inpatient Visit rate per 1000', 'Indexed Inpatient Rate', 
-                                  'Opioid Outpatient Visit', 'Total Outpatient Visit','Opioid Outpatient Visit rate per 1000', 'Indexed Outpatient rate', 
-                                  'Opioid Professional Visit', 'Total Professional Visit','Opioid Professional Visit rate per 1000', 'Indexed Professional rate', 
-                                  'Opioid Other Visit', 'Total Other Visit','Opioid Other Visit rate per 1000', 'Indexed Other rate', 
-                                  'Overall Opioid Visit', 'Total overall Visit', 'Overall Visit rate','Indexed overall rate')
+    colnames(Excellus_display)<-c('Year','County', 'Line of Business',
+                                  'ER Visit Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000','Indexed ER Rate',
+                                  'Opioid Inpatient Visits', 'Total Inpatient Visits','Opioid Inpatient Visit Rate per 1000', 'Indexed Inpatient Rate', 
+                                  'Opioid Outpatient Visit', 'Total Outpatient Visit','Opioid Outpatient Visit Rate per 1000', 'Indexed Outpatient Rate', 
+                                  'Opioid Professional Visit', 'Total Professional Visit','Opioid Professional Visit Rate per 1000', 'Indexed Professional Rate', 
+                                  'Opioid Other Visit', 'Total Other Visit','Opioid Other Visit Rate per 1000', 'Indexed Other Rate', 
+                                  'Overall Opioid Visit', 'Total Overall Visit', 'Overall Visit Rate','Indexed Overall Rate')
   
 
 
     datatable(Excellus_display, filter='top',options = list(autoWidth=TRUE, columnDefs = list(list(width='110px', class = 'dt-center', targets = c(1:27))),scrollX=TRUE, scrollY='300px')) %>%
-      formatCurrency(c('ER Visit Opioid', 'Total ER Visit','Opioid ER Visit rate per 1000','Indexed ER Rate',
-                       'Opioid Inpatient Visits', 'Total Inpatient Visits','Opioid Inpatient Visit rate per 1000', 'Indexed Inpatient Rate', 
-                       'Opioid Outpatient Visit', 'Total Outpatient Visit','Opioid Outpatient Visit rate per 1000', 'Indexed Outpatient rate', 
-                       'Opioid Professional Visit', 'Total Professional Visit','Opioid Professional Visit rate per 1000', 'Indexed Professional rate', 
-                                  'Opioid Other Visit', 'Total Other Visit','Opioid Other Visit rate per 1000', 'Indexed Other rate',
-                       'Overall Opioid Visit', 'Total overall Visit', 'Overall Visit rate','Indexed overall rate'), '')
+      formatCurrency(c('ER Visit Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000','Indexed ER Rate',
+                       'Opioid Inpatient Visits', 'Total Inpatient Visits','Opioid Inpatient Visit Rate per 1000', 'Indexed Inpatient Rate', 
+                       'Opioid Outpatient Visit', 'Total Outpatient Visit','Opioid Outpatient Visit Rate per 1000', 'Indexed Outpatient Rate', 
+                       'Opioid Professional Visit', 'Total Professional Visit','Opioid Professional Visit Rate per 1000', 'Indexed Professional Rate', 
+                                  'Opioid Other Visit', 'Total Other Visit','Opioid Other Visit Rate per 1000', 'Indexed Other Rate',
+                       'Overall Opioid Visit', 'Total Overall Visit', 'Overall Visit Rate','Indexed Overall Rate'), '')
   }, options= list(
     
     
@@ -439,7 +439,7 @@ shinyApp(
   ui = fluidPage(
     
     fluidRow(
-      column(6, offset=4, HTML('<font color="#317ec8"><h4>ICD Codes for Opioid-Related Facility Visits in Excellus counties</h4></font>'))
+      column(6, offset=4, HTML('<font color="#317ec8"><h4>ICD Codes for Opioid-Related Facility Visits in Excellus Counties</h4></font>'))
       
       
     ),
@@ -699,8 +699,9 @@ The interactive dashboard APP is organized into two section:
     2.1. It shows  line charts in the dashboard that would help the users to perform year-by-year comparison of various facility visits such as ER, 
     Inpatient, and Outpatient across different Excellus regions. 
   
+
   
-    2.2. Similarly, one can perform a year-by year comparison of opioid- related facility visit rate across different payers’ such as Commercial, Medicare, Medicaid, Professional and Other.
+    2.2. Similarly, one can perform a year-by-year comparison of opioid-related facility visit rate across different lines of business such as Commercial, Medicare, Medicaid, Professional and Other.
 
 
 

@@ -381,8 +381,8 @@ Excellus_regions.polygons <- unionSpatialPolygons(counties_region, counties_regi
 
 library(readxl)
 ICD_codes <- read_excel("ICD codes.xlsx")
-colnames(ICD_codes)<- ICD_codes[1,]
-ICD_codes<- ICD_codes[-1,]
+colnames(ICD_codes)<- ICD_codes
+ICD_codes<- ICD_codes
 
 #--------Select objects to keep in Rdata file----------------
 
