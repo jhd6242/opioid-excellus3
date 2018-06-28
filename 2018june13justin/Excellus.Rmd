@@ -394,7 +394,7 @@ renderDataTable({
   
 
 
-    datatable(Excellus_display, filter='top',options = list(autoWidth=TRUE, columnDefs = list(list(width='110px', class = 'dt-center', targets = c(1:27))),scrollX=TRUE, scrollY='300px')) %>%
+    datatable(Excellus_display, filter='top',options = list(autoWidth=TRUE, columnDefs = list(list(width='110px', className = 'dt-center', targets = c(1:27))),scrollX=TRUE, scrollY='300px')) %>%
       formatCurrency(c('ER Visit Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000','Indexed ER Rate',
                        'Opioid Inpatient Visits', 'Total Inpatient Visits','Opioid Inpatient Visit Rate per 1000', 'Indexed Inpatient Rate', 
                        'Opioid Outpatient Visit', 'Total Outpatient Visit','Opioid Outpatient Visit Rate per 1000', 'Indexed Outpatient Rate', 
@@ -414,7 +414,7 @@ renderDataTable({
 
 ### ![](./tab-filler.png) Data Dictonary
 
-#### Opioid-Related Facility Visits in Excellus counties ####{style="text-align:center"}
+#### Opioid-Related Facility Visits in Excellus Counties ####{style="text-align:center"}
 
 #### ####{style="text-align:left"}
 
@@ -476,10 +476,11 @@ shinyApp(
 
 renderTable({
   
-  colnames(facility_visits_df)<-c('Year','County',"Geography" ,'Line of Business', 'Total ER visit','Opioid ER Visit rate per 1000')
+  colnames(facility_visits_df)<-c('Year','County',"Geography" ,'Line of Business','ER Visit-Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000')
   
-  print(head(facility_visits_df[(facility_visits_df$County %in% c('Albany','Bronx') & facility_visits_df$Year=='2015') ,c('Year','County', 'Line of Business','ER visit-Opioid', 'Total ER isit','Opioid ER Visit rate per 1000')],10))
+  print(head(facility_visits_df[(facility_visits_df$County %in% c('Albany','Bronx') & facility_visits_df$Year=='2015') ,c('Year','County', 'Line of Business','ER Visit-Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000')],10))
   })
+
 ```
 
 
