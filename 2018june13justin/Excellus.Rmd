@@ -478,7 +478,7 @@ renderTable({
   
   colnames(facility_visits_df)<-c('Year','County',"Geography" ,'Line of Business', 'Total ER visit','Opioid ER Visit rate per 1000')
   
-  print(head(facility_visits_df[(facility_visits_df$County %in% c('Albany','Bronx') & facility_visits_df$Year=='2015') ,c('Year','County', 'Line of Business','ER visit-Opioid', 'Total ER visit','Opioid ER Visit rate per 1000')],10))
+  print(head(facility_visits_df[(facility_visits_df$County %in% c('Albany','Bronx') & facility_visits_df$Year=='2015') ,c('Year','County', 'Line of Business','ER visit-Opioid', 'Total ER isit','Opioid ER Visit rate per 1000')],10))
   })
 ```
 
