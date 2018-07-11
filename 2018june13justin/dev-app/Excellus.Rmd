@@ -439,7 +439,7 @@ shinyApp(
   ui = fluidPage(
     
     fluidRow(
-      column(6, offset=4, HTML('<font color="#317ec8"><h4>ICD Codes for Opioid-Related Facility Visits in Excellus Counties</h4></font>'))
+      column(6, offset=4, HTML('<font color="#317ec8"><h4 style="text-align:center">ICD Codes for Opioid-Related Facility Visits in Excellus Counties</h4></font>'))
       
       
     ),
@@ -455,6 +455,7 @@ shinyApp(
   server = function(input, output){
     
     output$try<- renderTable({
+      
       print(ICD_codes)
     })
   }

@@ -1,0 +1,12 @@
+name: dev_opioid_excellus_110718
+title: dev_opioid_excellus_110718
+username: jdecross
+account: jdecross
+server: rsprdapp01
+hostUrl: http://rsprdapp01:3939/__api__
+appId: 162
+bundleId: 505
+url: http://rsprdapp01:3939/content/162/
+when: 1531317673.5343
+asMultiple: FALSE
+asStatic: FALSE

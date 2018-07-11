@@ -1,0 +1,768 @@
+---
+title: "Opioid Epidemic Dashboard"
+resource_files:
+- Excellus_dashboard_implementation.R
+- ICD codes for Opioids.xlsx
+- testtable.csv
+runtime: shiny
+output:
+  flexdashboard::flex_dashboard:
+    orientation: column
+    theme: 'cerulean'
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(rmarkdown)
+library(shiny)
+library(dplyr)
+library(sp)
+library(raster)
+library(maptools)
+library(leaflet)
+library(RColorBrewer)
+library(tigris)
+library(rgdal)
+library(shinythemes)
+library(reshape2)
+library(rCharts)
+library(knitr)
+library(kableExtra)
+library(DT)
+library(shinyBS)
+#library(plyr)
+#library(quantmod)
+```
+
+```{r, echo=FALSE}
+
+#load(file="C:/Users/mpatel2/Desktop/Excellus_data_preprocessing/final.RData")
+load(file="final.RData")
+#load(file ='Trend.RData')
+
+```
+
+
+```{r}
+
+County_Payer<- c('County','Payer')
+visits<- list(
+  'Emergency Room'= c('Opioid.ER.visits','Total.ER.visits','ER.visit.rate'),
+  'Inpatient' =
+    c('Opioid.Inpatient.visits','Total.Inpatient.visits','Inpatient.visit.rate'),
+  'Outpatient' = 
+    c('Opioid.Outpatient.visits','Total.Outpatient.visits','Outpatient.visit.rate'),
+  'Professional' = 
+    c('Opioid.Professional.visits','Total.Professional.visits','Professional.visit.rate'),
+  'Other' = 
+    c('Opioid.Other.visits','Total.Other.visits','Other.visit.rate')
+  
+)
+
+levels(Excellus$Payer)[levels(Excellus$Payer)=="Direct Pay Hmo"] <- "Direct Pay HMO"
+levels(Excellus$Payer)[levels(Excellus$Payer)=="Direct Pay Pos"] <- "Direct Pay POS"
+levels(Excellus$Payer)[levels(Excellus$Payer)=="Ssa"] <- "SSA"
+#levels(Excellus$Payer)[levels(Excellus$Payer)=="<Unknown>"] <- "Unknown"
+#remove the Unknown Payer1
+#Excellus$Payer<- Excellus$Payer[!Excellus$Payer%in%c('<Unknown>')]
+
+#payer <- c('Child Health Plus', 'Commercial', 'Direct Pay HMO', 'Direct Pay POS', 'Family Health Plus', 'Healthy New York','Healthy New York Plus', 'Basic Health Plan', 'Medicaid','Medicare', 'SSA', "Valumed", "Unknown")
+payer <- c('Child Health Plus', 'Commercial', 'Direct Pay HMO', 'Direct Pay POS', 'Family Health Plus', 'Healthy New York','Healthy New York Plus', 'Basic Health Plan', 'Medicaid','Medicare', 'SSA', "Valumed")
+```
+
+Opioid-Related Facility Visits {data-orientation=column}
+=======================================================================
+
+
+#Column { .tabset .tabset-fade} 
+-----------------------------------------------------------------------
+### ![](./Standard-Excellus-Logo-Small.png) Opioid Epidemic Map
+
+
+```{r}
+
+ui<- fluidPage(
+  fluidRow(
+    
+    tags$head(
+      # Include our custom CSS
+      #includeCSS("C:/Users/mpatel2/Desktop/Excellus_data_preprocessing/styles.css")
+      includeCSS("styles.css")
+      #  includeScript("gomap.js")
+    ),
+    #width=12, height=650,#650 px
+    
+    leafletOutput('map', height = '563px'),
+    
+    absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE, draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto", width = 330, height= "auto",
+                  h2("Map Explorer Panel"),
+                  
+                  selectInput("year", 
+                              label = h4("Year"), 
+                              choices = as.character(c(2010:2017)),
+                              selected =" 2010"),
+                  tags$style(type='text/css', ".selectize-dropdown-content {max-height: 400px; }"),
+                  
+                  #options(shiny.sanitize.errors = TRUE),
+                  
+                  selectInput("visit", h4("Visit Type:"), choices = names(visits), selected = names(visits)[1], multiple=TRUE, selectize = TRUE),
+                  
+                  selectInput("payer", h4("Choose Line of Business:"), choices= payer, selected = "Commercial",multiple=TRUE, selectize = TRUE),
+                  
+                  actionButton("goButton", "Go!", icon("paper-plane"), style="color: #fff; background-color: #084594; border-color: #2e6da4"),
+                  p("Click the button to update the value displayed in the Map Explorer Panel.")                                    
+    ),
+    
+    absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE, draggable = TRUE, bottom = 0 , right = "auto", left = -5, top = "auto", width = 760, height= 10,
+                  tags$p(tags$strong(tags$u("Indexed Opioid Visit Rate")),tags$strong(": "), tags$i(tags$span(style="color:red",'Normalized mean for the opioid visit and line of business selected per 1000 people for Excellus counites')))
+                  
+                  
+                  
+                  
+                  
+    )
+  ))
+
+
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+  
+  
+  df<- eventReactive(input$goButton,{
+    
+    if(length(input$visit)==0 & length(input$payer)==0)
+    {
+      stop(safeError('Please select a "Visit" and a "Line of Business" in the Map Explorer Panel'))
+    }
+    else if(length(input$payer)==0)
+    {
+      stop(safeError('Please select a "Line of Business" in the Map Explorer Panel'))
+    }
+    else if(length(input$visit)==0)
+    {
+      stop(safeError('Please select a "Visit" in the Map Explorer Panel'))
+    }
+    
+    
+    if(length(input$visit)==1)
+    {
+      #opioid_df$Year<- as.character(opioid_df$Year)
+      if(length(input$payer)==1)
+      {
+        df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits)==input$visit]))]
+        return(df)
+      }
+      
+      else
+      {
+        df<- Excellus[(Excellus$Year==input$year & Excellus$Payer %in% input$payer), c(County_Payer,unlist(visits[names(visits)==input$visit]))]
+        
+        df <- df %>% group_by(County) %>% summarise_each(funs(sum), -Payer)
+        
+        df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
+        
+        df[is.na(df)]<-0
+        
+        df<- df[,c(1,2,3:5)]
+        df$County<- as.character(df$County)
+        
+        df[,5]<- (df[,3]/df[,4])*1000
+        return(df)
+      }
+    }
+    else if(length(input$visit)==2)
+    {
+      
+      if(length(input$payer)==1)
+      {
+        df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
+        df[is.na(df)]<-0
+        df$County<- as.character(df$County)
+        #df<- df[,-c(6,7)]
+        df[,3]<- df[,3]+df[,6]
+        df[,4]<- df[,4] + df[,7]
+        df[,5]<- (df[,3]/df[,4])*1000
+        return(df[,c(1:5)])
+      }
+      
+      else
+      {
+        df<- Excellus[(Excellus$Year==input$year & Excellus$Payer %in% input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
+        #df<- df[,-c(6,7)]
+        df <- df %>% group_by(County) %>% summarise_each(funs(sum), -Payer)
+        df[is.na(df)]<- 0
+        df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
+        
+        df<- df[,c(1,2,3:8)]
+        df$County<- as.character(df$County)
+        
+        df[,3]<- df[,3]+df[,6]
+        df[,4]<- df[,4] + df[,7]
+        df[,5]<- (df[,3]/df[,4])*1000
+        return(df[,c(1:5)])
+      }
+      
+      
+    }
+    else if(length(input$visit)==3)
+    {
+      
+      if(length(input$payer)==1)
+      {
+        df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
+        df[is.na(df)]<-0
+        #df<- df[,-c(6:7, 11:12)]
+        df[,3]<- df[,3]+df[,6]+df[,9]
+        df[,4]<- df[,4] + df[,7]+df[,10]
+        df[,5]<- (df[,3]/df[,4])*1000
+        return(df[,c(1:5)])
+      }
+      else
+      {
+        df<- Excellus[(Excellus$Year==input$year & Excellus$Payer %in% input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
+        #df<- df[,-c(6:7, 11:12)]
+        df <- df %>% group_by(County) %>% summarise_each(funs(sum), -Payer)
+        df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
+        df[is.na(df)]<-0
+        df<- df[,c(1,2,3:11)]
+        df$County<- as.character(df$County)
+        
+        df[,3]<- df[,3]+df[,6]+df[,9]
+        df[,4]<- df[,4] + df[,7]+df[,10]
+        df[,5]<- (df[,3]/df[,4])*1000
+        return(df[,c(1:5)])
+      }
+      
+      
+    }
+    
+    else if(length(input$visit)==4)
+    {
+      
+      if(length(input$payer)==1)
+      {
+        df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
+        df[is.na(df)]<-0
+        #df<- df[,-c(6:7, 11:12)]
+        df[,3]<- df[,3]+df[,6]+df[,9]+df[,12]
+        df[,4]<- df[,4] + df[,7]+df[,10]+df[,13]
+        df[,5]<- (df[,3]/df[,4])*1000
+        return(df[,c(1:5)])
+      }
+      else
+      {
+        df<- Excellus[(Excellus$Year==input$year & Excellus$Payer %in% input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
+        #df<- df[,-c(6:7, 11:12)]
+        df <- df %>% group_by(County) %>% summarise_each(funs(sum), -Payer)
+        df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
+        df[is.na(df)]<-0
+        df<- df[,c(1,2,3:14)]
+        df$County<- as.character(df$County)
+        
+        df[,3]<- df[,3]+df[,6]+df[,9]+df[,12]
+        df[,4]<- df[,4] + df[,7]+df[,10]+df[,13]
+        df[,5]<- (df[,3]/df[,4])*1000
+        return(df[,c(1:5)])
+      }
+      
+      
+    }
+    
+    else if(length(input$visit)==5)
+    {
+      
+      if(length(input$payer)==1)
+      {
+        df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
+        df[is.na(df)]<-0
+        #df<- df[,-c(6:7, 11:12)]
+        df[,3]<- df[,3]+df[,6]+df[,9]+df[,12]+df[,15]
+        df[,4]<- df[,4] + df[,7]+df[,10]+df[,13]+df[,16]
+        df[,5]<- (df[,3]/df[,4])*1000
+        return(df[,c(1:5)])
+      }
+      else
+      {
+        df<- Excellus[(Excellus$Year==input$year & Excellus$Payer %in% input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
+        #df<- df[,-c(6:7, 11:12)]
+        df <- df %>% group_by(County) %>% summarise_each(funs(sum), -Payer)
+        df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
+        df[is.na(df)]<-0
+        df<- df[,c(1,2,3:17)]
+        df$County<- as.character(df$County)
+        
+        df[,3]<- df[,3]+df[,6]+df[,9]+df[,12]+df[,15]
+        df[,4]<- df[,4] + df[,7]+df[,10]+df[,13]+df[,16]
+        df[,5]<- (df[,3]/df[,4])*1000
+        return(df[,c(1:5)])
+      }
+      
+      
+    }
+    
+    
+  }, ignoreNULL = FALSE)
+  
+  map<- reactive({
+    
+    counties2<- counties_spatial_df
+    df<- df()
+    df<- df[,1:5]
+    colnames(df)[colnames(df)=='County']<-'NAME_2'
+    counties2@data <- counties2@data %>% left_join(df, by = c('NAME_2'))
+    
+    counties2@data$Actual.Opioid.Visit.Rate<- counties2@data[,20]
+    counties2@data[,20]<- (counties2@data[,20]/mean(counties2@data[,20], na.rm=TRUE))*100
+    
+    
+    return(counties2)
+  })
+  
+  
+  
+  
+  
+  output$map<- renderLeaflet({
+    
+    
+    pal <- colorNumeric(
+      palette = "viridis",#Blue#Reds
+      domain = map()@data[,20])
+    
+    
+    #prettyNum(map()@data[,20], big.mark = ",")
+    #CartoDB.DarkMatter #Esri.WorldGrayCanvas##7f0000
+    leaflet(map()) %>% addProviderTiles('HikeBike.HikeBike') %>% 
+      setView(lat = 42.85, lng = -76.1474, zoom = 7) %>%
+      addPolygons(fillColor = ~pal(map()@data[,20])
+                  ,fillOpacity = 0.7
+                  ,color =  'white'#"#03F"   #"black" 
+                  ,weight = 1.5
+                  ,dashArray='4'
+                  ,popup = paste0(
+                    "<span style='color: #2c7fb8'><strong>",map()@data$NAME_2,"</span></strong><br><strong>", 'Total number of Visits: ', "</strong>",prettyNum(map()@data[,19], big.mark = ","),"<br><strong>",'Number of Visits with Opioid Code: ', "</strong>",prettyNum(map()@data[,18], big.mark = ","),"<br><strong>",'Opioid Visit rate: ', "</strong>",round(map()@data$Actual.Opioid.Visit.Rate,3),"<br><strong>",'Indexed Opioid Visit rate: ', "</strong>",round(map()@data[,20],1),  "<br><strong>", "Excellus Region: " ,"</strong>", map()@data$region
+                  )
+      ) %>% addLegend(position = "topleft",
+                      pal = pal, values = ~map()@data[,20]
+                      ,title = 'Indexed Opioid Visit <br>Rate per 1000: ') %>% 
+      addPolygons(data = Excellus_regions.polygons, fill = FALSE, color = '#f93', weight = 5)#"#084594"
+    
+  })
+  
+  
+}
+shinyApp(ui = ui, server = server)
+```
+
+
+
+### ![](./tab-filler.png) Dataset
+
+
+#### Opioid-Related Facility Visits in Excellus Counties ####{style="text-align:center"}
+
+#### ####{style="text-align:left"}
+
+
+```{r}
+
+renderDataTable({
+  
+  Excellus$Year<-as.factor(as.character(Excellus$Year))
+  Excellus$County<- as.factor(Excellus$County)
+  Excellus$Payer<- as.factor(Excellus$Payer)
+  
+    Excellus[,c(6,9,12,15,18,21)]<- round(Excellus[,c(6,9,12,15,18,21)],3)
+    
+    Excellus$Indexed.ER.rate<- as.integer((Excellus$ER.visit.rate/mean(Excellus$ER.visit.rate, na.rm=TRUE))*100)
+    Excellus$Indexed.Inpatient.rate<- as.integer((Excellus$Inpatient.visit.rate/mean(Excellus$Inpatient.visit.rate, na.rm=TRUE))*100)
+    Excellus$Indexed.Outpatient.rate<- as.integer((Excellus$Outpatient.visit.rate/mean(Excellus$Outpatient.visit.rate, na.rm=TRUE))*100)
+    Excellus$Indexed.Professional.rate<- as.integer((Excellus$Professional.visit.rate/mean(Excellus$Professional.visit.rate, na.rm=TRUE))*100)
+    Excellus$Indexed.Other.rate<- as.integer((Excellus$Other.visit.rate/mean(Excellus$Other.visit.rate, na.rm=TRUE))*100)
+    Excellus$Indexed.Overall.rate<- as.integer((Excellus$Overall.visit.rate/mean(Excellus$Overall.visit.rate, na.rm=TRUE))*100)
+    
+    
+    Excellus_display<- Excellus[, c(1:6,22,7:9,23,10:12,24, 13:15,25, 16:18,26, 19:21, 27 )]
+  
+    colnames(Excellus_display)<-c('Year','County', 'Line of Business',
+                                  'ER Visit Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000','Indexed ER Rate',
+                                  'Opioid Inpatient Visits', 'Total Inpatient Visits','Opioid Inpatient Visit Rate per 1000', 'Indexed Inpatient Rate', 
+                                  'Opioid Outpatient Visit', 'Total Outpatient Visit','Opioid Outpatient Visit Rate per 1000', 'Indexed Outpatient Rate', 
+                                  'Opioid Professional Visit', 'Total Professional Visit','Opioid Professional Visit Rate per 1000', 'Indexed Professional Rate', 
+                                  'Opioid Other Visit', 'Total Other Visit','Opioid Other Visit Rate per 1000', 'Indexed Other Rate', 
+                                  'Overall Opioid Visit', 'Total Overall Visit', 'Overall Visit Rate','Indexed Overall Rate')
+  
+
+
+    datatable(Excellus_display, filter='top',options = list(autoWidth=TRUE, columnDefs = list(list(width='110px', className = 'dt-center', targets = c(1:27))),scrollX=TRUE, scrollY='300px')) %>%
+      formatCurrency(c('ER Visit Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000','Indexed ER Rate',
+                       'Opioid Inpatient Visits', 'Total Inpatient Visits','Opioid Inpatient Visit Rate per 1000', 'Indexed Inpatient Rate', 
+                       'Opioid Outpatient Visit', 'Total Outpatient Visit','Opioid Outpatient Visit Rate per 1000', 'Indexed Outpatient Rate', 
+                       'Opioid Professional Visit', 'Total Professional Visit','Opioid Professional Visit Rate per 1000', 'Indexed Professional Rate', 
+                                  'Opioid Other Visit', 'Total Other Visit','Opioid Other Visit Rate per 1000', 'Indexed Other Rate',
+                       'Overall Opioid Visit', 'Total Overall Visit', 'Overall Visit Rate','Indexed Overall Rate'), '')
+  }, options= list(
+    
+    
+    pageLength=10
+    
+  )
+  )
+
+```
+
+
+### ![](./tab-filler.png) Data Dictonary
+
+#### Opioid-Related Facility Visits in Excellus Counties ####{style="text-align:center"}
+
+#### ####{style="text-align:left"}
+
+
+```{r}
+
+renderTable({
+    
+    print(opioid_df_dictionary[-2,])
+   
+  })
+
+```
+
+### ![](./tab-filler.png) ICD Codes
+
+
+```{r}
+
+shinyApp(
+  
+  ui = fluidPage(
+    
+    fluidRow(
+      column(6, offset=4, HTML('<font color="#317ec8"><h4 style="text-align:center">ICD Codes for Opioid-Related Facility Visits in Excellus Counties</h4></font>'))
+      
+      
+    ),
+    fluidRow(column(12,br())),
+    
+    fluidRow(
+      column(12, tableOutput("try"))
+    )
+    
+  )
+  ,
+  
+  server = function(input, output){
+    
+    output$try<- renderTable({
+      
+      print(ICD_codes)
+    })
+  }
+  
+)
+
+
+```
+
+
+### ![](./tab-filler.png)  Term Significance
+
+#### Definition of the Metrics on the Map ####{style="text-align:center"}
+
+#### {style="text-align:left"}
+
+
+```{r}
+
+renderTable({
+  
+  colnames(facility_visits_df)<-c('Year','County',"Geography" ,'Line of Business','ER Visit-Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000')
+  
+  print(head(facility_visits_df[(facility_visits_df$County %in% c('Albany','Bronx') & facility_visits_df$Year=='2015') ,c('Year','County', 'Line of Business','ER Visit-Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000')],10))
+  })
+
+```
+
+
+```{r}
+tags$hr(style="border-color: darkblue")
+```
+\ 
+
+\[
+\begin{eqnarray}
+Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ a\ County\ _{Year}& = & \dfrac {No.\ of\ ER\ visits\ for\ opioid\ abuse\ for\ Line\ of\ Business\ _{Year}\  } {Total\ ER\ visits\ for\ that\ county\ _{Year}}\hspace{10mm} *\ \ 1000\\
+\end{eqnarray}
+\]
+
+\
+
+\[
+\begin{eqnarray}
+Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ Albany\ _{2015}& = & \frac {37}{36,091}\ *\ 1000\\& \\& \approx & 1.02
+\end{eqnarray}
+\]
+
+
+```{r}
+tags$hr(style="border-color: darkblue")
+```
+
+\ 
+
+\[
+\begin{eqnarray}
+Opioid\ ER\ Visit\ Rate\ across\ all\ the\ Line\ of\ Business\ for\ a\ County\ _{Year}& = & \dfrac {\sum\limits_{i\ \in\  (Commercial,\  Medicaid,\  Medicare,\ Professional,\ Other\ )}\ No.\ of\ ER\ visits\ for\ opioid\ abuse\ _{i,\ Year\ }\  } {\sum\limits_{i\ \in\  (Commercial,\  Medicaid,\  Medicare,\ Professionl,\ Other\ )}\ Total\ ER\ visits\ for\ that\ county\ _{i,\ Year}} *\ \ 1000\\
+\end{eqnarray}
+\]
+
+\
+
+
+\[
+\begin{eqnarray}
+Opioid\ ER\ Visit\ Rate\ across\ all\ the\ Line\ of\ Business\ for\ Albany\ _{Year}& = & \dfrac {37\ +\ 39\ +\ 9\ +\ 3\ +\ 0\ } {(\ 36,091\ +\ 41,299\ +\ 20,079\ +\ 2,384\ +\ 17\ )\ } *\ \ 1000\\& \\& \approx & 0.88
+\end{eqnarray}
+\]
+
+
+```{r}
+tags$hr(style="border-color: darkblue")
+```
+\
+
+\[
+\begin{eqnarray}
+Indexed\ Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ a\ County\ _{2015}& = & \frac {Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ a\ County\ _{2015} }{mean\ (Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ across\ all\ the\ Counties\ _{2015} }\ *\ 100\\
+\end{eqnarray}
+\]
+
+\
+
+\
+\[
+\begin{eqnarray}
+Indexed\ Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ Albany\ _{2015}& = & \frac {1.02}{(\ 1.02\ +\ 0.26\ )\ /\ 2 }\ *\ 100\\& \approx &\ 79.68
+\end{eqnarray}
+\]
+
+\
+
+
+
+
+
+Trends
+=======================================================================
+### ![](./Standard-Excellus-Logo-Small.png) Trends Plots 
+
+
+
+```{r}
+
+shinyApp(
+  
+  ui = fluidPage(
+  
+    fluidRow(
+      column(2, offset=3, HTML('<font color="#084594"><b>Select the Facility Visit: </b></font>')),
+      column(3, selectInput('id', label=NULL, choices = c('ER Visit Rate','Inpatient Visit Rate', 'Outpatient Visit Rate',"Professional Visit Rate", "Other Visit Rate",'Overall Visit Rate'), selected='ER Visit Rate'))
+      
+      
+    
+  ),
+    fluidRow(
+    column(6, showOutput("nplot01", "highcharts" )),
+    
+    column(6, showOutput("nplot02", "highcharts" ))
+    #showOutput("nplot01", "highcharts" ) 
+  ),
+  
+  tags$br(),
+  tags$hr(style="border-color: darkblue"),
+  
+  fluidRow(
+    column(6, showOutput("nplot03", "highcharts" )),
+    column(6, showOutput("nplot04", "highcharts" ))
+    #showOutput("nplot01", "highcharts" ) 
+  )
+  
+  
+  )
+    ,
+  
+  server = function(input, output){
+    
+    visit<- reactive({
+      return(list(input$id, paste0(input$id,' per 1000')))
+    })
+    
+    output$nplot01 <- renderChart2({
+      c<- Excellus_all_region
+      df3<- c[c$variable==visit()[[1]],]
+      
+      colnames(df3)[colnames(df3)=='value']<- visit()[[2]]
+      
+      x1<- hPlot(x='Year', y=visit()[[2]] ,group='Region', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'By Region ')
+      x1$params$width <- 642
+      x1$params$height <- 540
+      x1
+    })
+    
+    output$nplot02 <- renderChart2({
+      c<- Excellus_all_payers
+      df3<- c[c$variable==visit()[[1]],]
+      colnames(df3)[colnames(df3)=='value']<- visit()[[2]]
+      
+      x1<- hPlot(x='Year', y=visit()[[2]] ,group='Payer', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'Line of Business')
+      x1$params$width <- 642
+      x1$params$height <- 540
+      x1
+    })
+    
+ output$nplot03 <- renderChart2({
+  c<- Excellus_all_region
+  df3<- c[c$variable==visit()[[1]],]
+  
+  x1<- hPlot(`Percent Change`~Year, group='Region', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'By Region ')
+  x1$params$width <- 642
+  x1$params$height <- 540
+  x1
+})
+
+       
+    output$nplot04 <- renderChart2({
+    c<- Excellus_all_payers
+  df3<- c[c$variable==visit()[[1]],]
+  
+  x1<- hPlot(`Percent Change`~Year, group='Payer', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'Line of Business')
+  x1$params$width <- 642
+  x1$params$height <- 540
+  x1
+    })
+  }
+  
+)
+
+```
+
+
+About {data-orientation=columns}
+=====================================  
+
+Row {data-height=900}
+-----------------------------------------------------------------------
+#### ![image alt >](./Ad-logo-small-horizontal.png) Executive Summary  
+
+#### Project Objectives  
+
+The objective of this project is to offer descriptive analytics, correlated analytics and a predictive intelligent model of the opioid-related facility (i.e., Emergency Room and providers' offices) visits of Excellus members across Excellus covered regions. 
+
+This project comprises of three phases: 
+
+1. Phase I: Descriptive Analytics: - Provide a descriptive analysis of how New York State and Excellus regions do on opioid related facility visits (i.e. emergency department) and opioid related fatalities 
+
+2. Phase II: Correlated Analytics: - Correlate Excellus providers and opioid-related visits and fatalities based geospatial mapping of Excellus regions. 
+
+3. Phase III: Predictive Modeling - Build predictive model based on Excellus dataset to show significant indicators based on opioid related visits, opioid prescriptions, age, gender, long-duration prescription and providers' behaviors.
+
+#### Background  
+
+This project explores the impact of opioid-related facility visits within the Excellus regions. The Analytics & Data team has designed a descriptive model in which our Behavioral Health team can compare the impact of opioid-related facility visits in each Excellus counties. The dashboard tool comprises of Geospatial mapping of Excellus regions for opioid-related facility visits. The dashboard also provides year-by-year comparisons of Excellus regions against various opioid-related facility visits and additionally allows users to filter out columns/rows as per user needs and download the filtered data so that they can better explore the dataset. 
+The dashboard deals with replicating New York State Opioid dashboard in Phase I over the internal Excellus data. Claims data were extracted from the EDW Oracle and classified every claim as being a opioid or non-opioid claim based on the opioid-related ICD 9 or 10 diagnosis codes.
+ 
+
+#### Dasboard Layout
+
+The interactive dashboard APP is organized into two section:
+
+
+1.  Geospatial mapping of Excellus counties. It consists of four tabs:
+
+  
+    1.1. Opioid Epidemic Map: Opioid Epidemic Map: Overall opioid visit rate by grouping each county and line of business. This helps to summarize data across multiple years and different line of business.
+  
+  
+    1.2. Dataset: Shows and load the actual dataset used in the app. This helps to summarize data across multiple years and multiple line of business.
+  
+  
+    1.3. Data Dictionary which will contain information about all the features included in the dataset. 
+  
+  
+    1.4. ICD Codes: Presents the opioid-related ICD codes that were used for extracting claims related to the ER, inpatient, Outpatient, Profession and Other  opioid-related facility visits. 
+  
+  
+    1.5. Term Significance: Present the definition of the Metrics used on the Map.
+
+
+2.  Trend
+    
+    2.1. It shows  line charts in the dashboard that would help the users to perform year-by-year comparison of various facility visits such as ER, 
+    Inpatient, and Outpatient across different Excellus regions. 
+  
+
+  
+    2.2. Similarly, one can perform a year-by-year comparison of opioid-related facility visit rate across different lines of business such as Commercial, Medicare, Medicaid, Professional and Other.
+
+
+
+
+##### EDW Tables and Logic used.
+
+
+
+---
+output: html_document
+# output: pdf_document
+---
+
+```{r}
+#dd<-read.csv("/users/amooman/WORK/Opioid/Excellus_opoiod_final_Dec28th/Excellus_March19/testtable.csv")
+
+sas_logic %>% 
+  knitr::kable("html", escape = F) %>%
+  # knitr::kable("latex", escape = F) %>%
+  #kable_styling(full_width = F)
+  kable_styling(c("striped", "bordered"),full_width = F) %>%
+  column_spec(1:2,bold=T) %>%
+  row_spec(1:18,bold=T, color = "#145B3D", background ="#DF8F33")
+```
+
+There are various conditions that we have to take into consideration while extracting opioid and non- opioid claims data. Below are all the conditions that we are going to consider:
+
+1. We have to make sure that we are extracting medical claims:
+
+    T_CLAIM_LINE_FACT.SRC_APPL_CODE NOT IN (  'FLRX',  'MEDIMPACT',  'ESI’)
+
+
+2. If we are extracting claims data for a specific year we have to make sure that claims paid date and service effective date should be in that year. Additionally we extract claims where the target claim status is F:
+
+	  T_CLAIM_LINE_FACT.CLM_LINE_PAID_DATE_SK BETWEEN &start_date. AND &end_date.
+    T_CLAIM_LINE_FACT.CLM_SRVC_EFF_DATE_SK BETWEEN &start_date. AND &end_date.
+    V_CLM_STS_CODE.TRGT_CLM_STS = 'F'
+
+
+3. We only extract ER, Inpatient and Outpatient claims:
+
+    T_HCG_MR_LINE_DIM.SETTING_DESC IN (  'Inpatient', 'Outpatient', 'Professional' ) OR T_HCG_MR_LINE_DIM.HCG_CODE IN ('13','39')
+
+4. We only extract Commercial, Medicaid and Medicare claims:
+
+    T_PRODUCT_DIM.BSNS_SGMNT IN ('Child Health Plus', 'Commercial', 'Direct Pay HMO', 'Direct Pay POS', 'Family Health Plus', 'Healthy New York','Healthy New York Plus', 'Basic Health Plan', 'Medicaid','Medicare', 'SSA', "Valumed")
+
+
+5. To make sure we extract only the relevant claims we add the below condition:
+
+    T_CLAIM_LINE_FACT.MBR_DIM_SK>1 and  T_MEMBER_DIM.PRSN_UNIQ_ID not = \<UNK\>
+
+
+Below is the condition that we take into consideration while extracting county information for a claim:
+
+6. We have to ensure that the claims effective date is between member address effective date and member address through date. The idea is that the claims date should be between the member's start and end address date. There are cases when the claims generate multiple counties and we deal with this problem by just extracting any one of the member county.
+
+
+    EACH_INDIVIDUAL_FILES_GENERATED_IN_PART_1.CLM_SRVC_EFF_DATE_SK between
+    T_MEMBER_ADDRESS_FACT.MBR_ADRS_EFF_DATE_SK and
+    T_MEMBER_ADDRESS_FACT.MBR_ADRS_EFF_THRU_DATE_SK
+
