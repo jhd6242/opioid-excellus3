@@ -647,6 +647,101 @@ shinyApp(
 
 ```
 
+Opioid Trends 
+=======================================================================
+### ![](./Standard-Excellus-Logo-Small.png) Opioid Trends Plots 
+
+
+
+```{r}
+
+shinyApp(
+  
+  ui = fluidPage(
+  
+    fluidRow(
+      column(2, offset=3, HTML('<font color="#084594"><b>Select the Facility Visit: </b></font>')),
+      column(3, selectInput('id', label=NULL, choices = c('ER Visit Rate','Inpatient Visit Rate', 'Outpatient Visit Rate',"Professional Visit Rate", "Other Visit Rate",'Overall Visit Rate'), selected='ER Visit Rate'))
+      
+      
+    
+  ),
+    fluidRow(
+    column(6, showOutput("nplot01", "highcharts" )),
+    
+    column(6, showOutput("nplot02", "highcharts" ))
+    #showOutput("nplot01", "highcharts" ) 
+  ),
+  
+  tags$br(),
+  tags$hr(style="border-color: darkblue"),
+  
+  fluidRow(
+    column(6, showOutput("nplot03", "highcharts" )),
+    column(6, showOutput("nplot04", "highcharts" ))
+    #showOutput("nplot01", "highcharts" ) 
+  )
+  
+  
+  )
+    ,
+  
+  server = function(input, output){
+    
+    visit<- reactive({
+      return(list(input$id, paste0(input$id,' per 1000')))
+    })
+    
+    output$nplot01 <- renderChart2({
+      c<- Excellus_all_region
+      df3<- c[c$variable==visit()[[1]],]
+      
+      colnames(df3)[colnames(df3)=='value']<- visit()[[2]]
+      
+      x1<- hPlot(x='Year', y=visit()[[2]] ,group='Region', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'By Region ')
+      x1$params$width <- 642
+      x1$params$height <- 540
+      x1
+    })
+    
+    output$nplot02 <- renderChart2({
+      c<- Excellus_all_payers
+      df3<- c[c$variable==visit()[[1]],]
+      colnames(df3)[colnames(df3)=='value']<- visit()[[2]]
+      
+      x1<- hPlot(x='Year', y=visit()[[2]] ,group='Payer', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'Line of Business')
+      x1$params$width <- 642
+      x1$params$height <- 540
+      x1
+    })
+    
+ output$nplot03 <- renderChart2({
+  c<- Excellus_all_region
+  df3<- c[c$variable==visit()[[1]],]
+  
+  x1<- hPlot(`Percent Change`~Year, group='Region', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'By Region ')
+  x1$params$width <- 642
+  x1$params$height <- 540
+  x1
+})
+
+       
+    output$nplot04 <- renderChart2({
+    c<- Excellus_all_payers
+  df3<- c[c$variable==visit()[[1]],]
+  
+  x1<- hPlot(`Percent Change`~Year, group='Payer', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'Line of Business')
+  x1$params$width <- 642
+  x1$params$height <- 540
+  x1
+    })
+  }
+  
+)
+
+```
+
+
 
 About {data-orientation=columns}
 =====================================  
