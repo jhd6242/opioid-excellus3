@@ -412,11 +412,11 @@ Excellus_all_region <- Excellus %>% group_by(Year,Region) %>% summarise_each(fun
 
 #Calculate the ER, Inpatient, Outpatient and overall visit rate for PainandAbuse and Diagnosis and PainAbuseDiagnosis
 #ER visit rate for PainandAbuse and Diagnosis and PainAbuseDiagnosis
-Excellus_all_region$PainandAbuse.ER.visit.rate<- (Excellus_all_region$PainandAbuse.ER.visits/ Excellus_all_region$Total.ER.visits)*1000
+Excellus_all_region$PainandAbuse.ER.visit.rate<- (Excellus_all_region$PainandAbuse.ER.visits/Excellus_all_region$Total.ER.visits)*1000
 
-Excellus_all_region$Diagnosis.ER.visit.rate<- (Excellus_all_region$Diagnosis.ER.visits/ Excellus_all_region$Total.ER.visits)*1000
+Excellus_all_region$Diagnosis.ER.visit.rate<- (Excellus_all_region$Diagnosis.ER.visits/Excellus_all_region$Total.ER.visits)*1000
 
-Excellus_all_region$PainAbuseDiagnosis.ER.visit.rate<- (Excellus_all_region$PainAbuseDiagnosis.ER.visits/ Excellus_all_region$Total.ER.visits)*1000
+Excellus_all_region$PainAbuseDiagnosis.ER.visit.rate<- (Excellus_all_region$PainAbuseDiagnosis.ER.visits/Excellus_all_region$Total.ER.visits)*1000
 
 
 #Inpatient visit rate for PainandAbuse and Diagnosis and PainAbuseDiagnosis
@@ -473,12 +473,12 @@ Excellus_all_region<- Excellus_all_region[,c(1,2,7,8,9,14,15,16,21,22,23,28,29,3
 #'PainandAbuse Other visit Rate', 'Diagnosis Other visit Rate',
 #'PainandAbuse Overall visit Rate','Diagnosis Overall visit Rate')
 #NM March6, 2018
-colnames(Excellus_all_region)<- c("Year",'Region','PainandAbuse ER visit Rate',' Diagnosis ER visit Rate','PainAbuseDiagnosis ER visit Rate',
-                                  'PainandAbuse Inpatient visit Rate', 'Diagnosis Inpatient visit Rate','PainAbuseDiagnosis Inpatient visit Rate',
-                                  'PainandAbuse Outpatient visit Rate',' Diagnosis Outpatient visit Rate','PainAbuseDiagnosis Outpatient visit Rate',
-                                  'PainandAbuse Professional visit Rate', 'Diagnosis Professional visit Rate','PainAbuseDiagnosis Professional visit Rate',
-                                  'PainandAbuse Other visit Rate', 'Diagnosis Other visit Rate','PainAbuseDiagnosis Other visit Rate',
-                                  'PainandAbuse Overall visit Rate','Diagnosis Overall visit Rate','PainAbuseDiagnosis Overall visit Rate')
+colnames(Excellus_all_region)<- c("Year",'Region','Pain and Abuse ER Visit Rate','Poisoning by Opiates ER Visit Rate','PainAbuseDiagnosis ER Visit Rate',
+                                  'Pain and Abuse Inpatient Visit Rate', 'Poisoning by Opiates Inpatient Visit Rate','PainAbuseDiagnosis Inpatient Visit Rate',
+                                  'Pain and Abuse Outpatient Visit Rate','Poisoning by Opiates Outpatient Visit Rate','PainAbuseDiagnosis Outpatient Visit Rate',
+                                  'Pain and Abuse Professional Visit Rate', 'Poisoning by Opiates Professional Visit Rate','PainAbuseDiagnosis Professional Visit Rate',
+                                  'Pain and Abuse Other Visit Rate', 'Poisoning by Opiates Other Visit Rate','PainAbuseDiagnosis Other Visit Rate',
+                                  'Pain and Abuse Overall Visit Rate','Poisoning by Opiates Overall Visit Rate','PainAbuseDiagnosis Overall Visit Rate')
 
 Excellus_all_region<- as.data.frame(Excellus_all_region)
 
@@ -499,13 +499,13 @@ Excellus_all_region<- Excellus_all_region[order(Excellus_all_region$Region, Exce
 #Summarize various Payers such as Commercial, Medicaid, Medicare across different Excellus regions
 Excellus_all_payers <- Excellus %>% group_by(Payer, Year) %>% summarise_each(funs(sum),-County,-Region)
 
-#Calculate the ER, Inpatient, Outpatient and overall visit rate for PainandAbuse and Diagnosis and PainAbuseDiagnosis
-#ER visit rate for PainandAbuse and Diagnosis and PainAbuseDiagnosis
-Excellus_all_payers$PainandAbuse.ER.visit.rate<- (Excellus_all_payers$PainandAbuse.ER.visits/ Excellus_all_payers$Total.ER.visits)*1000
+#Calculate the ER, Inpatient, Outpatient and overall visit rate for Pain and Abuse and Diagnosis and PainAbuseDiagnosis
+#ER visit rate for Pain and Abuse and Diagnosis and PainAbuseDiagnosis
+Excellus_all_payers$PainandAbuse.ER.visit.rate<- (Excellus_all_payers$PainandAbuse.ER.visits/Excellus_all_payers$Total.ER.visits)*1000
 
-Excellus_all_payers$Diagnosis.ER.visit.rate<- (Excellus_all_payers$Diagnosis.ER.visits/ Excellus_all_payers$Total.ER.visits)*1000
+Excellus_all_payers$Diagnosis.ER.visit.rate<- (Excellus_all_payers$Diagnosis.ER.visits/Excellus_all_payers$Total.ER.visits)*1000
 
-Excellus_all_payers$PainAbuseDiagnosis.ER.visit.rate<- (Excellus_all_payers$PainAbuseDiagnosis.ER.visits/ Excellus_all_payers$Total.ER.visits)*1000
+Excellus_all_payers$PainAbuseDiagnosis.ER.visit.rate<- (Excellus_all_payers$PainAbuseDiagnosis.ER.visits/Excellus_all_payers$Total.ER.visits)*1000
 
 
 #Inpatient visit rate for PainandAbuse and Diagnosis and PainAbuseDiagnosis
@@ -547,7 +547,7 @@ Excellus_all_payers$Diagnosis.Overall.visit.rate<- (Excellus_all_payers$Diagnosi
 
 Excellus_all_payers$PainAbuseDiagnosis.Overall.visit.rate<- (Excellus_all_payers$PainAbuseDiagnosis.Overall.visits/Excellus_all_payers$Total.Overall.visits)*1000
 
-
+Excellus_all_payers[is.na(Excellus_all_payers)] <- 0
 #Reshuffle columns and rename columns
 #Excellus_all_payers<- Excellus_all_payers[,c(1,2,5,8,11,14)]
 
@@ -558,12 +558,12 @@ Excellus_all_payers$PainAbuseDiagnosis.Overall.visit.rate<- (Excellus_all_payers
 Excellus_all_payers<- Excellus_all_payers[,c(1,2,7,8,9,14,15,16,21,22,23,28,29,30,35,36,37,42,43,44)]
 
 #NM March6, 2018
-colnames(Excellus_all_payers)<- c("Payer",'Year','PainandAbuse ER visit Rate',' Diagnosis ER visit Rate','PainAbuseDiagnosis ER visit Rate',
-                                  'PainandAbuse Inpatient visit Rate', 'Diagnosis Inpatient visit Rate','PainAbuseDiagnosis Inpatient visit Rate',
-                                  'PainandAbuse Outpatient visit Rate',' Diagnosis Outpatient visit Rate','PainAbuseDiagnosis Outpatient visit Rate',
-                                  'PainandAbuse Professional visit Rate', 'Diagnosis Professional visit Rate','PainAbuseDiagnosis Professional visit Rate',
-                                  'PainandAbuse Other visit Rate', 'Diagnosis Other visit Rate','PainAbuseDiagnosis Other visit Rate',
-                                  'PainandAbuse Overall visit Rate','Diagnosis Overall visit Rate','PainAbuseDiagnosis Overall visit Rate')
+colnames(Excellus_all_payers)<- c("Payer",'Year','Pain and Abuse ER Visit Rate','Poisoning by Opiates ER Visit Rate','PainAbuseDiagnosis ER Visit Rate',
+                                  'Pain and Abuse Inpatient Visit Rate', 'Poisoning by Opiates Inpatient Visit Rate','PainAbuseDiagnosis Inpatient Visit Rate',
+                                  'Pain and Abuse Outpatient Visit Rate','Poisoning by Opiates Outpatient Visit Rate','PainAbuseDiagnosis Outpatient Visit Rate',
+                                  'Pain and Abuse Professional Visit Rate', 'Poisoning by Opiates Professional Visit Rate','PainAbuseDiagnosis Professional Visit Rate',
+                                  'Pain and Abuse Other Visit Rate', 'Poisoning by Opiates Other Visit Rate','PainAbuseDiagnosis Other Visit Rate',
+                                  'Pain and Abuse Overall Visit Rate','Poisoning by Opiates Overall Visit Rate','PainAbuseDiagnosis Overall Visit Rate')
 
 
 Excellus_all_payers<- as.data.frame(Excellus_all_payers)
@@ -683,7 +683,7 @@ Excellus$Diagnosis.Overall.visit.rate<- (Excellus$Diagnosis.Overall.visits/Excel
 
 Excellus$PainAbuseDiagnosis.Overall.visit.rate<- (Excellus$PainAbuseDiagnosis.Overall.visits/Excellus$Total.Overall.visits)*1000
 
-
+Excellus[is.na(Excellus)]<- 0 
 #--------------CREATE NY COUNTY SPATIAL POLYGON--------------
 
 library(raster)
@@ -735,5 +735,6 @@ objects_to_keep=c("Excellus_regions.polygons", "counties_spatial_df", "Excellus_
 rm(list=setdiff(ls(), objects_to_keep))
 
 #save.image('C:/Users/mpatel2/Desktop/Excellus_data_preprocessing/final.Rdata')
-save.image('final.RData')
+save.image('dev-app/final.RData')
+head('final.RData')
 

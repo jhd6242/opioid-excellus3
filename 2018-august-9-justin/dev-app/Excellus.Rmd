@@ -4,11 +4,12 @@ resource_files:
 - Excellus_dashboard_implementation.R
 - ICD codes for Opioids.xlsx
 - testtable.csv
+- final.RData
 runtime: shiny
 output:
   flexdashboard::flex_dashboard:
     orientation: column
-    theme: 'cerulean'
+    theme: cerulean
 ---
 
 ```{r setup, include=FALSE}
@@ -37,7 +38,7 @@ library(shinyBS)
 ```{r, echo=FALSE}
 
 #load(file="C:/Users/mpatel2/Desktop/Excellus_data_preprocessing/final.RData")
-load(file="/apps/rspro/projects/Opioid_Excellus/Excellus/dev-app/2018-august-9-justin/final.RData")
+load(file="final.RData")
 #load(file ='Trend.RData')
 
 ```
@@ -70,7 +71,7 @@ levels(Excellus$Payer)[levels(Excellus$Payer)=="Ssa"] <- "SSA"
 payer <- c('Child Health Plus', 'Commercial', 'Direct Pay HMO', 'Direct Pay POS', 'Family Health Plus', 'Healthy New York','Healthy New York Plus', 'Basic Health Plan', 'Medicaid','Medicare', 'SSA', "Valumed")
 
 
-dependency_grouping <- c('PainandAbuse','Diagnosis','PainAbuseDiagnosis')
+
 ```
 
 Opioid-Related Facility Visits {data-orientation=column}
@@ -116,16 +117,16 @@ ui<- fluidPage(
                   
                   selectInput("payer", h4("Choose Line of Business:"), choices= payer, selected = "Commercial",multiple=TRUE, selectize = TRUE),
                   
-                   selectInput("dependency_grouping", h4("Choose Opioid Grouping:"), choices= dependency_grouping, selected = "PainandAbuse",multiple=FALSE, selectize = TRUE),
+                   selectInput("dependency_grouping", h4("Choose Opioid Grouping:"), choices= c('Pain and Abuse','Poisoning by Opiates'), selected = 'Pain and Abuse',multiple=TRUE, selectize = TRUE),
                   
                   actionButton("goButton", "Go!", icon("paper-plane"), style="color: #fff; background-color: #084594; border-color: #2e6da4"),
                   p("Click the button to update the value displayed in the Map Explorer Panel.")                                    
     ),
       conditionalPanel(
-         condition = "input.dependency_grouping == 'PainandAbuse'",
+         condition = "input.dependency_grouping == 'Pain and Abuse'",
 
     absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE, draggable = TRUE, bottom = 0 , right = "auto", left = -5, top = "auto", width = 760, height= 10,
-                 tags$p(tags$strong(tags$u("Indexed PainandAbuse Visit Rate")),tags$strong(": "), tags$i(tags$span(style="color:red",'Normalized mean for the PainandAbuse visit and line of business selected per 1000 people for Excellus counites')))
+                 tags$p(tags$strong(tags$u("Indexed Pain and Abuse Visit Rate")),tags$strong(": "), tags$i(tags$span(style="color:red",'Normalized mean for the Pain and Abuse visit and line of business selected per 1000 people for Excellus counites')))
                   
                   
               
@@ -134,10 +135,10 @@ ui<- fluidPage(
     )
  ),
    conditionalPanel(
-         condition = "input.dependency_grouping == 'Diagnosis'",
+         condition = "input.dependency_grouping == 'Poisoning by Opiates'",
 
     absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE, draggable = TRUE, bottom = 0 , right = "auto", left = -5, top = "auto", width = 760, height= 10,
-                 tags$p(tags$strong(tags$u("Indexed Diagnosis Visit Rate")),tags$strong(": "), tags$i(tags$span(style="color:red",'Normalized mean for the Diagnosis visit and line of business selected per 1000 people for Excellus counites')))
+                 tags$p(tags$strong(tags$u("Indexed Poisoning by Opiates Visit Rate")),tags$strong(": "), tags$i(tags$span(style="color:red",'Normalized mean for the Poisoning by Opiates visit and line of business selected per 1000 people for Excellus counites')))
                   
                   
               
@@ -146,7 +147,7 @@ ui<- fluidPage(
     )
  ),
      conditionalPanel(
-         condition = "input.dependency_grouping == 'PainAbuseDiagnosis'",
+         condition = c("input.dependency_grouping == 'Pain and Abuse' && input.dependency_grouping == 'Poisoning by Opiates'"),
 
     absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE, draggable = TRUE, bottom = 0 , right = "auto", left = -5, top = "auto", width = 760, height= 10,
                  tags$p(tags$strong(tags$u("Indexed Opioid Visit Rate")),tags$strong(": "), tags$i(tags$span(style="color:red",'Normalized mean for the opioid visit and line of business selected per 1000 people for Excellus counites')))
@@ -163,7 +164,7 @@ ui<- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
-  # print("hi****************4 ") 
+   print("hi****************4 ") 
   df<- eventReactive(input$goButton,{
 
     if(length(input$visit)==0 & length(input$payer)==0)
@@ -178,7 +179,7 @@ server <- function(input, output) {
     { 
       stop(safeError('Please select a "Visit" in the Map Explorer Panel'))
     }
-if(input$dependency_grouping=='PainandAbuse') {
+if(input$dependency_grouping=='Pain and Abuse') {
 
   if(length(input$visit)==1)
     { 
@@ -187,7 +188,7 @@ if(input$dependency_grouping=='PainandAbuse') {
       { 
 
         df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits)==input$visit]))]
-
+    df[is.na(df)] <- 0
          return(df)
       }
       
@@ -338,39 +339,35 @@ if(input$dependency_grouping=='PainandAbuse') {
     }
     
 }
-    else if (input$dependency_grouping=='Diagnosis') {
+    else if (input$dependency_grouping=='Poisoning by Opiates') {
 
   if(length(input$visit)==1)
     { 
       #opioid_df$Year<- as.character(opioid_df$Year)
       if(length(input$payer)==1)
       { 
-       #  print(c("hellow 2", Excellus))
 
-            #  print(c("hi****************1 ", df))
         df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits)==input$visit]))]
-# print(c("hi****************1 ", df))
-          
+ df<- df[,c(1,2,6,4,7)]       
+print(c("df",df))
+
          return(df)
-         #      print("after ") 
       }
       
       else
       { 
         df<- Excellus[(Excellus$Year==input$year & Excellus$Payer %in% input$payer), c(County_Payer,unlist(visits[names(visits)==input$visit]))]
-         print(c("hi*****************1 ", df))
         df <- df %>% group_by(County) %>% summarise_each(funs(sum), -Payer)
-         print("hi2")
         df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
-         print("hi3")
+        print("Hello to")
         df[is.na(df)]<-0
-         print(c("hi4",df))
-        df<- df[,c(1:5)]
-         print("hi5")
-        df$County<- as.character(df$County)
-         print(c("hi6",df))
-        df[,5]<- (df[,3]/df[,4])*1000
         
+        df<- df[,c(1:6)]
+        
+        df$County<- as.character(df$County)
+        df[,3] <- df[,6]
+        df[,5]<- (df[,6]/df[,4])*1000
+        df[is.na(df)] <- 0
         return(df)
       }
     }
@@ -386,7 +383,7 @@ if(input$dependency_grouping=='PainandAbuse') {
         df$County<- as.character(df$County)
         print(c("df3",df))
         #df<- df[,-c(6,7)]
-        df[,3]<- df[,3]+df[,10]
+        df[,3]<- df[,6]+df[,13]
         print(c("df4",df[,3]))
         df[,4]<- df[,4] + df[,11]
         df[,5]<- (df[,3]/df[,4])*1000
@@ -404,7 +401,7 @@ if(input$dependency_grouping=='PainandAbuse') {
         df<- df[,c(1,2,3:13)]
         df$County<- as.character(df$County)
         
-        df[,3]<- df[,3]+df[,10]
+        df[,3]<- df[,6]+df[,13]
         df[,4]<- df[,4] + df[,11]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -420,7 +417,8 @@ if(input$dependency_grouping=='PainandAbuse') {
         df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
         df[is.na(df)]<-0
         #df<- df[,-c(6:7, 11:12)]
-        df[,3]<- df[,3]+df[,10]+df[,17]
+
+        df[,3]<- df[,6]+df[,13]+df[,20]
         df[,4]<- df[,4] + df[,11]+df[,18]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -435,7 +433,7 @@ if(input$dependency_grouping=='PainandAbuse') {
         df<- df[,c(1:20)]
         df$County<- as.character(df$County)
         
-        df[,3]<- df[,3]+df[,10]+df[,17]
+        df[,3]<- df[,6]+df[,13]+df[,20]
         df[,4]<- df[,4] + df[,11]+df[,18]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -452,7 +450,9 @@ if(input$dependency_grouping=='PainandAbuse') {
         df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
         df[is.na(df)]<-0
         #df<- df[,-c(6:7, 11:12)]
-        df[,3]<- df[,3]+df[,10]+df[,17]+df[,24]
+                        print(c("df3",df))
+
+        df[,3]<- df[,6]+df[,13]+df[,20]+df[,27]
         df[,4]<- df[,4] + df[,11]+df[,18]+df[,25]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -467,7 +467,7 @@ if(input$dependency_grouping=='PainandAbuse') {
         df<- df[,c(1:27)]
         df$County<- as.character(df$County)
         
-        df[,3]<- df[,3]+df[,10]+df[,17]+df[,24]
+        df[,3]<- df[,6]+df[,13]+df[,20]+df[,27]
         df[,4]<- df[,4] + df[,11]+df[,18]+df[,25]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -485,7 +485,7 @@ if(input$dependency_grouping=='PainandAbuse') {
         df[is.na(df)]<-0
         #df<- df[,-c(6:7, 11:12)]
         print(c("df1",str(df)))
-        df[,3]<- df[,3]+df[,10]+df[,17]+df[,24]+df[,31]
+        df[,3]<- df[,6]+df[,13]+df[,20]+df[,27]+df[,34]
         df[,4]<- df[,4] + df[,11]+df[,18]+df[,25]+df[,32]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -500,7 +500,7 @@ if(input$dependency_grouping=='PainandAbuse') {
         df<- df[,c(1:34)]
         df$County<- as.character(df$County)
         
-        df[,3]<- df[,3]+df[,10]+df[,17]+df[,24]+df[,31]
+        df[,3]<- df[,6]+df[,13]+df[,20]+df[,27]+df[,34]
         df[,4]<- df[,4] + df[,11]+df[,18]+df[,25]+df[,32]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -510,38 +510,31 @@ if(input$dependency_grouping=='PainandAbuse') {
     }
     
 }
-    else if (input$dependency_grouping=='PainAbuseDiagnosis') {
-
+    else if (input$dependency_grouping %in% "Pain and Abuse" & input$dependency_grouping %in% "Poisoning by Opiates") {
+print("Dependence")
   if(length(input$visit)==1)
     { 
       #opioid_df$Year<- as.character(opioid_df$Year)
       if(length(input$payer)==1)
       { 
-       #  print(c("hellow 2", Excellus))
 
-            #  print(c("hi****************1 ", df))
         df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits)==input$visit]))]
-# print(c("hi****************1 ", df))
-          
+df<- df[,c(1,2,8,4,9)]
+print(c("df",df))
          return(df)
-         #      print("after ") 
       }
       
       else
       { 
         df<- Excellus[(Excellus$Year==input$year & Excellus$Payer %in% input$payer), c(County_Payer,unlist(visits[names(visits)==input$visit]))]
-         print(c("hi*****************1 ", df))
         df <- df %>% group_by(County) %>% summarise_each(funs(sum), -Payer)
-         print("hi2")
         df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
-         print("hi3")
         df[is.na(df)]<-0
-         print(c("hi4",df))
-        df<- df[,c(1:5)]
-         print("hi5")
+        df<- df[,c(1:8)]
+        print(c("df1",df))
         df$County<- as.character(df$County)
-         print(c("hi6",df))
-        df[,5]<- (df[,3]/df[,4])*1000
+        df[,3] <- df[,8]
+        df[,5]<- (df[,8]/df[,4])*1000
         
         return(df)
       }
@@ -554,12 +547,9 @@ if(input$dependency_grouping=='PainandAbuse') {
         df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
        
         df[is.na(df)]<-0
-        print(c("df2",head(df)))
         df$County<- as.character(df$County)
-        print(c("df3",df))
         #df<- df[,-c(6,7)]
-        df[,3]<- df[,3]+df[,10]
-        print(c("df4",df[,3]))
+        df[,3]<- df[,8]+df[,15]
         df[,4]<- df[,4] + df[,11]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -573,10 +563,10 @@ if(input$dependency_grouping=='PainandAbuse') {
         df[is.na(df)]<- 0
         df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
         
-        df<- df[,c(1,2,3:13)]
+        df<- df[,c(1,2,3:15)]
         df$County<- as.character(df$County)
         
-        df[,3]<- df[,3]+df[,10]
+        df[,3]<- df[,8]+df[,15]
         df[,4]<- df[,4] + df[,11]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -592,7 +582,7 @@ if(input$dependency_grouping=='PainandAbuse') {
         df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
         df[is.na(df)]<-0
         #df<- df[,-c(6:7, 11:12)]
-        df[,3]<- df[,3]+df[,10]+df[,17]
+        df[,3]<- df[,8]+df[,15]+df[,22]
         df[,4]<- df[,4] + df[,11]+df[,18]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -604,10 +594,10 @@ if(input$dependency_grouping=='PainandAbuse') {
         df <- df %>% group_by(County) %>% summarise_each(funs(sum), -Payer)
         df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
         df[is.na(df)]<-0
-        df<- df[,c(1:20)]
+        df<- df[,c(1:22)]
         df$County<- as.character(df$County)
         
-        df[,3]<- df[,3]+df[,10]+df[,17]
+        df[,3]<- df[,8]+df[,15]+df[,22]
         df[,4]<- df[,4] + df[,11]+df[,18]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -624,7 +614,7 @@ if(input$dependency_grouping=='PainandAbuse') {
         df<- Excellus[(Excellus$Year==input$year & Excellus$Payer==input$payer), c(County_Payer,unlist(visits[names(visits) %in% input$visit]))]
         df[is.na(df)]<-0
         #df<- df[,-c(6:7, 11:12)]
-        df[,3]<- df[,3]+df[,10]+df[,17]+df[,24]
+        df[,3]<- df[,8]+df[,15]+df[,22]+df[,29]
         df[,4]<- df[,4] + df[,11]+df[,18]+df[,25]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -636,10 +626,10 @@ if(input$dependency_grouping=='PainandAbuse') {
         df <- df %>% group_by(County) %>% summarise_each(funs(sum), -Payer)
         df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
         df[is.na(df)]<-0
-        df<- df[,c(1:27)]
+        df<- df[,c(1:29)]
         df$County<- as.character(df$County)
         
-        df[,3]<- df[,3]+df[,10]+df[,17]+df[,24]
+        df[,3]<- df[,8]+df[,15]+df[,22]+df[,29]
         df[,4]<- df[,4] + df[,11]+df[,18]+df[,25]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -657,7 +647,7 @@ if(input$dependency_grouping=='PainandAbuse') {
         df[is.na(df)]<-0
         #df<- df[,-c(6:7, 11:12)]
         print(c("df1",str(df)))
-        df[,3]<- df[,3]+df[,10]+df[,17]+df[,24]+df[,31]
+        df[,3]<- df[,8]+df[,15]+df[,22]+df[,29]+df[,36]
         df[,4]<- df[,4] + df[,11]+df[,18]+df[,25]+df[,32]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -669,10 +659,10 @@ if(input$dependency_grouping=='PainandAbuse') {
         df <- df %>% group_by(County) %>% summarise_each(funs(sum), -Payer)
         df<- as.data.frame(append(df, list(Payer=paste0(input$payer, collapse = ' and ')), after = 1))
         df[is.na(df)]<-0
-        df<- df[,c(1:34)]
+        df<- df[,c(1:36)]
         df$County<- as.character(df$County)
-        
-        df[,3]<- df[,3]+df[,10]+df[,17]+df[,24]+df[,31]
+
+        df[,3]<- df[,8]+df[,15]+df[,22]+df[,29]+df[,36]
         df[,4]<- df[,4] + df[,11]+df[,18]+df[,25]+df[,32]
         df[,5]<- (df[,3]/df[,4])*1000
         return(df[,c(1:5)])
@@ -686,33 +676,31 @@ if(input$dependency_grouping=='PainandAbuse') {
 
 
    map<- reactive({
-if(input$dependency_grouping=='PainandAbuse'){
+
     counties2<- counties_spatial_df
-    print(c("Test 1*************",counties2))
      df<- df()
-     print(c("Test 2*************",df))   
+     df[is.na(df)] <- 0
+ 
      df<- df[,c(1:5)]
-     print(c("Test 3*************",df))
+     
      colnames(df)[colnames(df)=='County']<-'NAME_2'
      counties2@data <- counties2@data %>% left_join(df, by = c('NAME_2'))
-        print(c("Test 4*************",counties2@data))
-
+print(c("Banana1",counties2@data[,20]))
      counties2@data$Actual.Opioid.Visit.Rate<- counties2@data[,20]
-     print(c("Test 5*************", counties2@data$Actual.Opioid.Visit.Rate))
-
+print(c("Banana2",mean(counties2@data[,20])))
      counties2@data[,20]<- (counties2@data[,20]/mean(counties2@data[,20], na.rm=TRUE))*100
-     print(c("Test 7*************", counties2@data[,20]))
-
+     
+counties2@data[is.na(counties2@data)] <- 0
     return(counties2)
-}
+     
+
    })
 
   
 
    output$map<- renderLeaflet({
-    if (is.nan(map()@data[,20])) {
-      stop(safeError("No PainandAbuse visits"))
-    }
+     if (input$dependency_grouping=='Pain and Abuse') {
+
     
     pal <- colorNumeric(
       palette = "viridis",#Blue#Reds
@@ -730,13 +718,66 @@ if(input$dependency_grouping=='PainandAbuse'){
                   ,weight = 1.5
                   ,dashArray='4'
                   ,popup = paste0(
-                    "<span style='color: #2c7fb8'><strong>",map()@data$NAME_2,"</span></strong><br><strong>", 'Total number of Visits: ', "</strong>",prettyNum(map()@data[,19], big.mark = ","),"<br><strong>",'Number of Visits with Opioid Code: ', "</strong>",prettyNum(map()@data[,18], big.mark = ","),"<br><strong>",'Opioid Visit rate: ', "</strong>",round(map()@data$Actual.Opioid.Visit.Rate,3),"<br><strong>",'Indexed Opioid Visit rate: ', "</strong>",round(map()@data[,20],1),  "<br><strong>", "Excellus Region: " ,"</strong>", map()@data$region
+                    "<span style='color: #2c7fb8'><strong>",map()@data$NAME_2,"</span></strong><br><strong>", 'Total number of Visits: ', "</strong>",prettyNum(map()@data[,19], big.mark = ","),"<br><strong>",'Number of Visits with Pain and Abuse Code: ', "</strong>",prettyNum(map()@data[,18], big.mark = ","),"<br><strong>",'Pain and Abuse Visit rate: ', "</strong>",round(map()@data$Actual.Opioid.Visit.Rate,3),"<br><strong>",'Indexed Pain and Abuse Visit rate: ', "</strong>",round(map()@data[,20],1),  "<br><strong>", "Excellus Region: " ,"</strong>", map()@data$region
                   )
      ) %>% addLegend(position = "topleft",
                       pal = pal, values = ~map()@data[,20]
-                      ,title = 'Indexed Opioid Visit <br>Rate per 1000: ') %>% 
+                      ,title = 'Indexed Pain and Abuse Visit <br>Rate per 1000: ') %>% 
       addPolygons(data = Excellus_regions.polygons, fill = FALSE, color = '#f93', weight = 5)#"#084594"
+     } else if (input$dependency_grouping=='Poisoning by Opiates') {
+     
+   
+    pal <- colorNumeric(
+      palette = "viridis",#Blue#Reds
+      domain = map()@data[,20])
+
+    print(c("Test1",map()@data[,20]))
     
+   # prettyNum(map()@data[,20], big.mark = ",")
+   # CartoDB.DarkMatter #Esri.WorldGrayCanvas##7f0000
+    leaflet(map()) %>% addProviderTiles('HikeBike.HikeBike') %>% 
+      setView(lat = 42.85, lng = -76.1474, zoom = 7) %>%
+      addPolygons(fillColor = ~pal(map()@data[,20])
+                  ,fillOpacity = 0.7
+                  ,color =  'white'#"#03F"   #"black" 
+                  ,weight = 1.5
+                  ,dashArray='4'
+                  ,popup = paste0(
+                    "<span style='color: #2c7fb8'><strong>",map()@data$NAME_2,"</span></strong><br><strong>", 'Total number of Visits: ', "</strong>",prettyNum(map()@data[,19], big.mark = ","),"<br><strong>",'Number of Visits with Diagnosis Code: ', "</strong>",prettyNum(map()@data[,18], big.mark = ","),"<br><strong>",'Diagnosis Visit rate: ', "</strong>",round(map()@data$Actual.Opioid.Visit.Rate,3),"<br><strong>",'Indexed Diagnosis Visit rate: ', "</strong>",round(map()@data[,20],1),  "<br><strong>", "Excellus Region: " ,"</strong>", map()@data$region
+                  )
+     ) %>% addLegend(position = "topleft",
+                      pal = pal, values = ~map()@data[,20]
+                      ,title = 'Indexed Diagnosis Visit <br>Rate per 1000: ') %>% 
+      addPolygons(data = Excellus_regions.polygons, fill = FALSE, color = '#f93', weight = 5)#"#084594"
+       
+     } else if (input$dependency_grouping %in% "Pain and Abuse" & input$dependency_grouping %in% "Poisoning by Opiates") {
+     
+    
+    
+    pal <- colorNumeric(
+      palette = "viridis",#Blue#Reds
+      domain = map()@data[,20])
+
+    print(c("Test1",map()@data[,20]))
+    
+   # prettyNum(map()@data[,20], big.mark = ",")
+   # CartoDB.DarkMatter #Esri.WorldGrayCanvas##7f0000
+    leaflet(map()) %>% addProviderTiles('HikeBike.HikeBike') %>% 
+      setView(lat = 42.85, lng = -76.1474, zoom = 7) %>%
+      addPolygons(fillColor = ~pal(map()@data[,20])
+                  ,fillOpacity = 0.7
+                  ,color =  'white'#"#03F"   #"black" 
+                  ,weight = 1.5
+                  ,dashArray='4'
+                  ,popup = paste0(
+                    "<span style='color: #2c7fb8'><strong>",map()@data$NAME_2,"</span></strong><br><strong>", 'Total number of Visits: ', "</strong>",prettyNum(map()@data[,19], big.mark = ","),"<br><strong>",'Number of Visits with PainAbuseDiagnosis Code: ', "</strong>",prettyNum(map()@data[,18], big.mark = ","),"<br><strong>",'PainAbuseDiagnosis Visit rate: ', "</strong>",round(map()@data$Actual.Opioid.Visit.Rate,3),"<br><strong>",'Indexed PainAbuseDiagnosis Visit rate: ', "</strong>",round(map()@data[,20],1),  "<br><strong>", "Excellus Region: " ,"</strong>", map()@data$region
+                  )
+     ) %>% addLegend(position = "topleft",
+                      pal = pal, values = ~map()@data[,20]
+                      ,title = 'Indexed PainAbuseDiagnosis Visit <br>Rate per 1000: ') %>% 
+      addPolygons(data = Excellus_regions.polygons, fill = FALSE, color = '#f93', weight = 5)#"#084594"
+       
+     }
   })
   
 
@@ -763,35 +804,57 @@ renderDataTable({
   Excellus$County<- as.factor(Excellus$County)
   Excellus$Payer<- as.factor(Excellus$Payer)
   
-    Excellus[,c(6,9,12,15,18,21)]<- round(Excellus[,c(6,9,12,15,18,21)],3)
+    Excellus[,c(8,9,15,16,22,23,29,30,36,37,43,44)]<- round(Excellus[,c(8,9,15,16,22,23,29,30,36,37,43,44)],3)
+    pain <- mean(Excellus$PainandAbuse.ER.visit.rate)
+    print(c("JackFruit",pain)) 
+    print(c("Index1",Excellus$PainandAbuse.ER.visit.rate))
+
+    Excellus$PainandAbuse.Indexed.ER.rate<- as.integer((Excellus$PainandAbuse.ER.visit.rate/mean(Excellus$PainandAbuse.ER.visit.rate, na.rm=TRUE))*100)
+    print(c("Index1",Excellus$PainandAbuse.ER.visit.rate))
+     Excellus$Diagnosis.Indexed.ER.rate<- as.integer((Excellus$Diagnosis.ER.visit.rate/mean(Excellus$Diagnosis.ER.visit.rate, na.rm=TRUE))*100)
+      Excellus$PainAbuseDiagnosis.Indexed.ER.rate<- as.integer((Excellus$PainAbuseDiagnosis.ER.visit.rate/mean(Excellus$PainAbuseDiagnosis.ER.visit.rate, na.rm=TRUE))*100)
+      
+    Excellus$PainandAbuse.Indexed.Inpatient.rate<- as.integer((Excellus$PainandAbuse.Inpatient.visit.rate/mean(Excellus$PainandAbuse.Inpatient.visit.rate, na.rm=TRUE))*100)
+    Excellus$Diagnosis.Indexed.Inpatient.rate<- as.integer((Excellus$Diagnosis.Inpatient.visit.rate/mean(Excellus$Diagnosis.Inpatient.visit.rate, na.rm=TRUE))*100)
+    Excellus$PainAbuseDiagnosis.Indexed.Inpatient.rate<- as.integer((Excellus$PainAbuseDiagnosis.Inpatient.visit.rate/mean(Excellus$PainAbuseDiagnosis.Inpatient.visit.rate, na.rm=TRUE))*100)
     
-    Excellus$Indexed.ER.rate<- as.integer((Excellus$ER.visit.rate/mean(Excellus$ER.visit.rate, na.rm=TRUE))*100)
-    Excellus$Indexed.Inpatient.rate<- as.integer((Excellus$Inpatient.visit.rate/mean(Excellus$Inpatient.visit.rate, na.rm=TRUE))*100)
-    Excellus$Indexed.Outpatient.rate<- as.integer((Excellus$Outpatient.visit.rate/mean(Excellus$Outpatient.visit.rate, na.rm=TRUE))*100)
-    Excellus$Indexed.Professional.rate<- as.integer((Excellus$Professional.visit.rate/mean(Excellus$Professional.visit.rate, na.rm=TRUE))*100)
-    Excellus$Indexed.Other.rate<- as.integer((Excellus$Other.visit.rate/mean(Excellus$Other.visit.rate, na.rm=TRUE))*100)
-    Excellus$Indexed.Overall.rate<- as.integer((Excellus$Overall.visit.rate/mean(Excellus$Overall.visit.rate, na.rm=TRUE))*100)
+    Excellus$PainandAbuse.Indexed.Outpatient.rate<- as.integer((Excellus$PainandAbuse.Outpatient.visit.rate/mean(Excellus$PainandAbuse.Outpatient.visit.rate, na.rm=TRUE))*100)
+    Excellus$Diagnosis.Indexed.Outpatient.rate<- as.integer((Excellus$Diagnosis.Outpatient.visit.rate/mean(Excellus$Diagnosis.Outpatient.visit.rate, na.rm=TRUE))*100)
+    Excellus$PainAbuseDiagnosis.Indexed.Outpatient.rate<- as.integer((Excellus$PainAbuseDiagnosis.Outpatient.visit.rate/mean(Excellus$PainAbuseDiagnosis.Outpatient.visit.rate, na.rm=TRUE))*100)
+    
+    Excellus$PainandAbuse.Indexed.Professional.rate<- as.integer((Excellus$PainandAbuse.Professional.visit.rate/mean(Excellus$PainandAbuse.Professional.visit.rate, na.rm=TRUE))*100)
+    Excellus$Diagnosis.Indexed.Professional.rate<- as.integer((Excellus$Diagnosis.Professional.visit.rate/mean(Excellus$Diagnosis.Professional.visit.rate, na.rm=TRUE))*100)
+    Excellus$PainAbuseDiagnosis.Indexed.Professional.rate<- as.integer((Excellus$PainAbuseDiagnosis.Professional.visit.rate/mean(Excellus$PainAbuseDiagnosis.Professional.visit.rate, na.rm=TRUE))*100)
+    
+    Excellus$PainandAbuse.Indexed.Other.rate<- as.integer((Excellus$PainandAbuse.Other.visit.rate/mean(Excellus$PainandAbuse.Other.visit.rate, na.rm=TRUE))*100)
+    
+    Excellus$Diagnosis.Indexed.Other.rate<- as.integer((Excellus$Diagnosis.Other.visit.rate/mean(Excellus$Diagnosis.Other.visit.rate, na.rm=TRUE))*100)
+    Excellus$PainAbuseDiagnosis.Indexed.Other.rate<- as.integer((Excellus$PainAbuseDiagnosis.Other.visit.rate/mean(Excellus$PainAbuseDiagnosis.Other.visit.rate, na.rm=TRUE))*100)
+    
+    Excellus$PainandAbuse.Indexed.Overall.rate<- as.integer((Excellus$PainandAbuse.Overall.visit.rate/mean(Excellus$PainandAbuse.Overall.visit.rate, na.rm=TRUE))*100)
+    Excellus$Diagnosis.Indexed.Overall.rate<- as.integer((Excellus$Diagnosis.Overall.visit.rate/mean(Excellus$Diagnosis.Overall.visit.rate, na.rm=TRUE))*100)
+    Excellus$PainAbuseDiagnosis.Indexed.Overall.rate<- as.integer((Excellus$PainAbuseDiagnosis.Overall.visit.rate/mean(Excellus$PainAbuseDiagnosis.Overall.visit.rate, na.rm=TRUE))*100)
     
     
-    Excellus_display<- Excellus[, c(1:6,22,7:9,23,10:12,24, 13:15,25, 16:18,26, 19:21, 27 )]
-  
+    Excellus_display<- Excellus[, c(1:5,7:9,46,47,11,12,14:16,49,50,18,19,21:23,52,53,25,26,28:30,55,56,32,33,35:37,58,59,39,40,42:44,61,62 )]
+  print(c("Apple",head(Excellus_display)))
     colnames(Excellus_display)<-c('Year','County', 'Line of Business',
-                                  'ER Visit Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000','Indexed ER Rate',
-                                  'Opioid Inpatient Visits', 'Total Inpatient Visits','Opioid Inpatient Visit Rate per 1000', 'Indexed Inpatient Rate', 
-                                  'Opioid Outpatient Visit', 'Total Outpatient Visit','Opioid Outpatient Visit Rate per 1000', 'Indexed Outpatient Rate', 
-                                  'Opioid Professional Visit', 'Total Professional Visit','Opioid Professional Visit Rate per 1000', 'Indexed Professional Rate', 
-                                  'Opioid Other Visit', 'Total Other Visit','Opioid Other Visit Rate per 1000', 'Indexed Other Rate', 
-                                  'Overall Opioid Visit', 'Total Overall Visit', 'Overall Visit Rate','Indexed Overall Rate')
+                                  'Pain and Abuse  ER Visit', 'Poisoning by Opiates ER Visit', 'Total ER Visit', 'Pain and Abuse ER Visit Rate per 1000', 'Poisoning by Opiates ER Visit Rate per 1000','Pain and Abuse Indexed ER Rate','Poisoning by Opiates Indexed ER Rate',
+                                  'Pain and Abuse Inpatient Visits', 'Poisoning by Opiates Inpatient Visits', 'Total Inpatient Visits', 'Pain and Abuse Inpatient Visit Rate per 1000', 'Poisoning by Opiates Inpatient Visit Rate per 1000', 'Pain and Abuse Indexed Inpatient Rate', 'Poisoning by Opiates Indexed Inpatient Rate', 
+                                  'Pain and Abuse Outpatient Visit', 'Poisoning by Opiates Outpatient Visit', 'Total Outpatient Visit','Pain and Abuse Outpatient Visit Rate per 1000','Poisoning by Opiates Outpatient Visit Rate per 1000', 'Pain and Abuse Indexed Outpatient Rate', 'Poisoning by Opiates Indexed Outpatient Rate', 
+                                  'Pain and Abuse Professional Visit', 'Poisoning by Opiates Professional Visit', 'Total Professional Visit','Pain and Abuse Professional Visit Rate per 1000','Poisoning by Opiates Professional Visit Rate per 1000', 'Pain and Abuse Indexed Professional Rate', 'Poisoning by Opiates Indexed Professional Rate', 
+                                  'Pain and Abuse Other Visit', 'Poisoning by Opiates Other Visit', 'Total Other Visit','Pain and Abuse Other Visit Rate per 1000','Poisoning by Opiates Other Visit Rate per 1000', 'Pain and Abuse Indexed Other Rate', 'Poisoning by Opiates Indexed Other Rate', 
+                                  'Pain and Abuse Overall Visit', 'Poisoning by Opiates Overall Visit', 'Total Overall Visit', 'Pain and Abuse Overall Visit Rate', 'Poisoning by Opiates Overall Visit Rate','Pain and Abuse Indexed Overall Rate','Poisoning by Opiates Indexed Overall Rate')
   
 
 
-    datatable(Excellus_display, filter='top',options = list(autoWidth=TRUE, columnDefs = list(list(width='110px', className = 'dt-center', targets = c(1:27))),scrollX=TRUE, scrollY='300px')) %>%
-      formatCurrency(c('ER Visit Opioid', 'Total ER Visit','Opioid ER Visit Rate per 1000','Indexed ER Rate',
-                       'Opioid Inpatient Visits', 'Total Inpatient Visits','Opioid Inpatient Visit Rate per 1000', 'Indexed Inpatient Rate', 
-                       'Opioid Outpatient Visit', 'Total Outpatient Visit','Opioid Outpatient Visit Rate per 1000', 'Indexed Outpatient Rate', 
-                       'Opioid Professional Visit', 'Total Professional Visit','Opioid Professional Visit Rate per 1000', 'Indexed Professional Rate', 
-                                  'Opioid Other Visit', 'Total Other Visit','Opioid Other Visit Rate per 1000', 'Indexed Other Rate',
-                       'Overall Opioid Visit', 'Total Overall Visit', 'Overall Visit Rate','Indexed Overall Rate'), '')
+    datatable(Excellus_display, filter='top',options = list(autoWidth=TRUE, columnDefs = list(list(width='110px', className = 'dt-center', targets = c(1:45))),scrollX=TRUE, scrollY='300px')) %>%
+      formatCurrency(c('Pain and Abuse  ER Visit', 'Poisoning by Opiates ER Visit', 'Total ER Visit', 'Pain and Abuse ER Visit Rate per 1000', 'Poisoning by Opiates ER Visit Rate per 1000','Pain and Abuse Indexed ER Rate','Poisoning by Opiates Indexed ER Rate',
+                                  'Pain and Abuse Inpatient Visits', 'Poisoning by Opiates Inpatient Visits', 'Total Inpatient Visits', 'Pain and Abuse Inpatient Visit Rate per 1000', 'Poisoning by Opiates Inpatient Visit Rate per 1000', 'Pain and Abuse Indexed Inpatient Rate', 'Poisoning by Opiates Indexed Inpatient Rate', 
+                                  'Pain and Abuse Outpatient Visit', 'Poisoning by Opiates Outpatient Visit', 'Total Outpatient Visit','Pain and Abuse Outpatient Visit Rate per 1000','Poisoning by Opiates Outpatient Visit Rate per 1000', 'Pain and Abuse Indexed Outpatient Rate', 'Poisoning by Opiates Indexed Outpatient Rate', 
+                                  'Pain and Abuse Professional Visit', 'Poisoning by Opiates Professional Visit', 'Total Professional Visit','Pain and Abuse Professional Visit Rate per 1000','Poisoning by Opiates Professional Visit Rate per 1000', 'Pain and Abuse Indexed Professional Rate', 'Poisoning by Opiates Indexed Professional Rate', 
+                                  'Pain and Abuse Other Visit', 'Poisoning by Opiates Other Visit', 'Total Other Visit','Pain and Abuse Other Visit Rate per 1000','Poisoning by Opiates Other Visit Rate per 1000', 'Pain and Abuse Indexed Other Rate', 'Poisoning by Opiates Indexed Other Rate', 
+                                  'Pain and Abuse Overall Visit', 'Poisoning by Opiates Overall Visit', 'Total Overall Visit', 'Pain and Abuse Overall Visit Rate', 'Poisoning by Opiates Overall Visit Rate','Pain and Abuse Indexed Overall Rate','Poisoning by Opiates Indexed Overall Rate'), '')
   }, options= list(
     
     
@@ -944,10 +1007,12 @@ Indexed\ Opioid\ ER\ Visit\ Rate\ for\ a\ Line\ of\ Business\ for\ Albany\ _{201
 
 
 
-Trends
+Opioid Trends
 =======================================================================
-### ![](./Standard-Excellus-Logo-Small.png) Trends Plots 
 
+#Column { .tabset .tabset-fade} 
+-----------------------------------------------------------------------
+### ![](./Standard-Excellus-Logo-Small.png) Pain and Abuse Trends Plots
 
 
 ```{r}
@@ -958,7 +1023,7 @@ shinyApp(
   
     fluidRow(
       column(2, offset=3, HTML('<font color="#084594"><b>Select the Facility Visit: </b></font>')),
-      column(3, selectInput('id', label=NULL, choices = c('ER Visit Rate','Inpatient Visit Rate', 'Outpatient Visit Rate',"Professional Visit Rate", "Other Visit Rate",'Overall Visit Rate'), selected='ER Visit Rate'))
+      column(3, selectInput('id', label=NULL, choices = c('Pain and Abuse ER Visit Rate','Pain and Abuse Inpatient Visit Rate', 'Pain and Abuse Outpatient Visit Rate',"Pain and Abuse Professional Visit Rate", "Pain and Abuse Other Visit Rate",'Pain and Abuse Overall Visit Rate'), selected='Pain and Abuse ER Visit Rate'))
       
       
     
@@ -988,19 +1053,198 @@ shinyApp(
     visit<- reactive({
       return(list(input$id, paste0(input$id,' per 1000')))
     })
-    
     output$nplot01 <- renderChart2({
       c<- Excellus_all_region
+
       df3<- c[c$variable==visit()[[1]],]
       
       colnames(df3)[colnames(df3)=='value']<- visit()[[2]]
-      
+
       x1<- hPlot(x='Year', y=visit()[[2]] ,group='Region', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'By Region ')
       x1$params$width <- 642
       x1$params$height <- 540
       x1
     })
+
+    output$nplot02 <- renderChart2({
+      c<- Excellus_all_payers
+
+      df3<- c[c$variable==visit()[[1]],]
+      colnames(df3)[colnames(df3)=='value']<- visit()[[2]]
+      
+      x1<- hPlot(x='Year', y=visit()[[2]] ,group='Payer', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'Line of Business')
+      x1$params$width <- 642
+      x1$params$height <- 540
+      x1
+    })
     
+ output$nplot03 <- renderChart2({
+  c<- Excellus_all_region
+  df3<- c[c$variable==visit()[[1]],]
+  
+  x1<- hPlot(`Percent Change`~Year, group='Region', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'By Region ')
+  x1$params$width <- 642
+  x1$params$height <- 540
+  x1
+})
+
+       
+    output$nplot04 <- renderChart2({
+    c<- Excellus_all_payers
+  df3<- c[c$variable==visit()[[1]],]
+  
+  x1<- hPlot(`Percent Change`~Year, group='Payer', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'Line of Business')
+  x1$params$width <- 642
+  x1$params$height <- 540
+  x1
+    })
+  }
+  
+)
+
+```
+
+### ![](./tab-filler.png) Poisoning by Opiates Trends Plots
+
+```{r}
+
+shinyApp(
+  
+  ui = fluidPage(
+  
+    fluidRow(
+      column(2, offset=3, HTML('<font color="#084594"><b>Select the Facility Visit: </b></font>')),
+      column(3, selectInput('id', label=NULL, choices = c('Poisoning by Opiates ER Visit Rate','Poisoning by Opiates Inpatient Visit Rate', 'Poisoning by Opiates Outpatient Visit Rate','Poisoning by Opiates Professional Visit Rate', 'Poisoning by Opiates Other Visit Rate','Poisoning by Opiates Overall Visit Rate'), selected='Poisoning by Opiates ER Visit Rate'))
+      
+      
+    
+  ),
+    fluidRow(
+    column(6, showOutput("nplot01", "highcharts" )),
+    
+    column(6, showOutput("nplot02", "highcharts" ))
+    #showOutput("nplot01", "highcharts" ) 
+  ),
+  
+  tags$br(),
+  tags$hr(style="border-color: darkblue"),
+  
+  fluidRow(
+    column(6, showOutput("nplot03", "highcharts" )),
+    column(6, showOutput("nplot04", "highcharts" ))
+    #showOutput("nplot01", "highcharts" ) 
+  )
+  
+  
+  )
+    ,
+  
+  server = function(input, output){
+    
+    visit<- reactive({
+      return(list(input$id, paste0(input$id,' per 1000')))
+    })
+    output$nplot01 <- renderChart2({
+      c<- Excellus_all_region
+
+      df3<- c[c$variable==visit()[[1]],]
+      colnames(df3)[colnames(df3)=='value']<- visit()[[2]]
+      x1<- hPlot(x='Year', y=visit()[[2]] ,group='Region', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'By Region ')
+      x1$params$width <- 642
+      x1$params$height <- 540
+      x1
+    })
+
+    output$nplot02 <- renderChart2({
+      c<- Excellus_all_payers
+      df3<- c[c$variable==visit()[[1]],]
+      colnames(df3)[colnames(df3)=='value']<- visit()[[2]]
+      
+      x1<- hPlot(x='Year', y=visit()[[2]] ,group='Payer', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'Line of Business')
+      x1$params$width <- 642
+      x1$params$height <- 540
+      x1
+    })
+    
+ output$nplot03 <- renderChart2({
+  c<- Excellus_all_region
+  df3<- c[c$variable==visit()[[1]],]
+  
+  x1<- hPlot(`Percent Change`~Year, group='Region', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'By Region ')
+  x1$params$width <- 642
+  x1$params$height <- 540
+  x1
+})
+
+       
+    output$nplot04 <- renderChart2({
+    c<- Excellus_all_payers
+   
+  df3<- c[c$variable==visit()[[1]],]
+  
+  x1<- hPlot(`Percent Change`~Year, group='Payer', data= df3, type='column', title=paste0('Percent Change in ',input$id,' for 2011-2017'), subtitle = 'Line of Business')
+  x1$params$width <- 642
+  x1$params$height <- 540
+  x1
+    })
+  }
+  
+)
+```
+
+### ![](./tab-filler.png) Combined Trends Plots
+
+```{r}
+
+shinyApp(
+  
+  ui = fluidPage(
+  
+    fluidRow(
+      column(2, offset=3, HTML('<font color="#084594"><b>Select the Facility Visit: </b></font>')),
+      column(3, selectInput('id', label=NULL, choices = c('Combined ER Visit Rate','Combined Inpatient Visit Rate', 'Combined Outpatient Visit Rate','Combined Professional Visit Rate', 'Combined Other Visit Rate','Combined Overall Visit Rate'), selected='Combined ER Visit Rate'))
+      
+      
+    
+  ),
+    fluidRow(
+    column(6, showOutput("nplot01", "highcharts" )),
+    
+    column(6, showOutput("nplot02", "highcharts" ))
+    #showOutput("nplot01", "highcharts" ) 
+  ),
+  
+  tags$br(),
+  tags$hr(style="border-color: darkblue"),
+  
+  fluidRow(
+    column(6, showOutput("nplot03", "highcharts" )),
+    column(6, showOutput("nplot04", "highcharts" ))
+    #showOutput("nplot01", "highcharts" ) 
+  )
+  
+  
+  )
+    ,
+  
+  server = function(input, output){
+    
+    visit<- reactive({
+      return(list(input$id, paste0(input$id,' per 1000')))
+    })
+    output$nplot01 <- renderChart2({
+      c<- Excellus_all_region
+
+      df3<- c[c$variable==visit()[[1]],]
+      
+      colnames(df3)[colnames(df3)=='value']<- visit()[[2]]
+
+      x1<- hPlot(x='Year', y=visit()[[2]] ,group='Region', data= df3, type='line', title=paste0(input$id,' for 2010-2017'), subtitle = 'By Region ')
+      x1$params$width <- 642
+      x1$params$height <- 540
+      x1
+    })
+
     output$nplot02 <- renderChart2({
       c<- Excellus_all_payers
       df3<- c[c$variable==visit()[[1]],]
@@ -1035,7 +1279,6 @@ shinyApp(
   }
   
 )
-
 ```
 
 
