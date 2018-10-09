@@ -473,12 +473,12 @@ Excellus_all_region<- Excellus_all_region[,c(1,2,7,8,9,14,15,16,21,22,23,28,29,3
 #'PainandAbuse Other visit Rate', 'Diagnosis Other visit Rate',
 #'PainandAbuse Overall visit Rate','Diagnosis Overall visit Rate')
 #NM March6, 2018
-colnames(Excellus_all_region)<- c("Year",'Region','Pain and Abuse ER Visit Rate','Poisoning by Opiates ER Visit Rate','PainAbuseDiagnosis ER Visit Rate',
-                                  'Pain and Abuse Inpatient Visit Rate', 'Poisoning by Opiates Inpatient Visit Rate','PainAbuseDiagnosis Inpatient Visit Rate',
-                                  'Pain and Abuse Outpatient Visit Rate','Poisoning by Opiates Outpatient Visit Rate','PainAbuseDiagnosis Outpatient Visit Rate',
-                                  'Pain and Abuse Professional Visit Rate', 'Poisoning by Opiates Professional Visit Rate','PainAbuseDiagnosis Professional Visit Rate',
-                                  'Pain and Abuse Other Visit Rate', 'Poisoning by Opiates Other Visit Rate','PainAbuseDiagnosis Other Visit Rate',
-                                  'Pain and Abuse Overall Visit Rate','Poisoning by Opiates Overall Visit Rate','PainAbuseDiagnosis Overall Visit Rate')
+colnames(Excellus_all_region)<- c("Year",'Region','Pain and Abuse ER Visit Rate','Poisoning by Opiates ER Visit Rate','Combined ER Visit Rate',
+                                  'Pain and Abuse Inpatient Visit Rate', 'Poisoning by Opiates Inpatient Visit Rate','Combined Inpatient Visit Rate',
+                                  'Pain and Abuse Outpatient Visit Rate','Poisoning by Opiates Outpatient Visit Rate','Combined Outpatient Visit Rate',
+                                  'Pain and Abuse Professional Visit Rate', 'Poisoning by Opiates Professional Visit Rate','Combined Professional Visit Rate',
+                                  'Pain and Abuse Other Visit Rate', 'Poisoning by Opiates Other Visit Rate','Combined Other Visit Rate',
+                                  'Pain and Abuse Overall Visit Rate','Poisoning by Opiates Overall Visit Rate','Combined Overall Visit Rate')
 
 Excellus_all_region<- as.data.frame(Excellus_all_region)
 
@@ -558,12 +558,12 @@ Excellus_all_payers[is.na(Excellus_all_payers)] <- 0
 Excellus_all_payers<- Excellus_all_payers[,c(1,2,7,8,9,14,15,16,21,22,23,28,29,30,35,36,37,42,43,44)]
 
 #NM March6, 2018
-colnames(Excellus_all_payers)<- c("Payer",'Year','Pain and Abuse ER Visit Rate','Poisoning by Opiates ER Visit Rate','PainAbuseDiagnosis ER Visit Rate',
-                                  'Pain and Abuse Inpatient Visit Rate', 'Poisoning by Opiates Inpatient Visit Rate','PainAbuseDiagnosis Inpatient Visit Rate',
-                                  'Pain and Abuse Outpatient Visit Rate','Poisoning by Opiates Outpatient Visit Rate','PainAbuseDiagnosis Outpatient Visit Rate',
-                                  'Pain and Abuse Professional Visit Rate', 'Poisoning by Opiates Professional Visit Rate','PainAbuseDiagnosis Professional Visit Rate',
-                                  'Pain and Abuse Other Visit Rate', 'Poisoning by Opiates Other Visit Rate','PainAbuseDiagnosis Other Visit Rate',
-                                  'Pain and Abuse Overall Visit Rate','Poisoning by Opiates Overall Visit Rate','PainAbuseDiagnosis Overall Visit Rate')
+colnames(Excellus_all_payers)<- c("Payer",'Year','Pain and Abuse ER Visit Rate','Poisoning by Opiates ER Visit Rate','Combined ER Visit Rate',
+                                  'Pain and Abuse Inpatient Visit Rate', 'Poisoning by Opiates Inpatient Visit Rate','Combined Inpatient Visit Rate',
+                                  'Pain and Abuse Outpatient Visit Rate','Poisoning by Opiates Outpatient Visit Rate','Combined Outpatient Visit Rate',
+                                  'Pain and Abuse Professional Visit Rate', 'Poisoning by Opiates Professional Visit Rate','Combined Professional Visit Rate',
+                                  'Pain and Abuse Other Visit Rate', 'Poisoning by Opiates Other Visit Rate','Combined Other Visit Rate',
+                                  'Pain and Abuse Overall Visit Rate','Poisoning by Opiates Overall Visit Rate','Combined Overall Visit Rate')
 
 
 Excellus_all_payers<- as.data.frame(Excellus_all_payers)

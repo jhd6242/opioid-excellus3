@@ -70,7 +70,7 @@ levels(Excellus$Payer)[levels(Excellus$Payer)=="Ssa"] <- "SSA"
 #payer <- c('Child Health Plus', 'Commercial', 'Direct Pay HMO', 'Direct Pay POS', 'Family Health Plus', 'Healthy New York','Healthy New York Plus', 'Basic Health Plan', 'Medicaid','Medicare', 'SSA', "Valumed", "Unknown")
 payer <- c('Child Health Plus', 'Commercial', 'Direct Pay HMO', 'Direct Pay POS', 'Family Health Plus', 'Healthy New York','Healthy New York Plus', 'Basic Health Plan', 'Medicaid','Medicare', 'SSA', "Valumed")
 
-
+dependency_grouping <- c("Pain and Abuse","Poisoning by Opiates")
 
 ```
 
@@ -100,7 +100,7 @@ ui<- fluidPage(
     ),
     #width=12, height=650,#650 px
     
-    leafletOutput('map', height = '563px'),
+    leafletOutput('map', height = '563px', width = '1200px'), # chip added with
     
     absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE, draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto", width = 330, height= "auto",
                   h2("Map Explorer Panel"),
@@ -115,9 +115,9 @@ ui<- fluidPage(
                   
                   selectInput("visit", h4("Visit Type:"), choices = names(visits), selected = names(visits)[1], multiple=TRUE, selectize = TRUE),
                   
-                  selectInput("payer", h4("Choose Line of Business:"), choices= payer, selected = "Commercial",multiple=TRUE, selectize = TRUE),
+                  selectInput("payer", h4("Line of Business:"), choices= payer, selected = "Commercial",multiple=TRUE, selectize = TRUE),
                   
-                   selectInput("dependency_grouping", h4("Choose Opioid Grouping:"), choices= c('Pain and Abuse','Poisoning by Opiates'), selected = 'Pain and Abuse',multiple=TRUE, selectize = TRUE),
+                   selectInput("dependency_grouping", h4("Opioid Grouping:"), choices= dependency_grouping, selected = "Pain and Abuse",multiple=TRUE, selectize = TRUE),
                   
                   actionButton("goButton", "Go!", icon("paper-plane"), style="color: #fff; background-color: #084594; border-color: #2e6da4"),
                   p("Click the button to update the value displayed in the Map Explorer Panel.")                                    
@@ -145,12 +145,13 @@ ui<- fluidPage(
                   
                   
     )
- ),
+ ), 
+ 
      conditionalPanel(
-         condition = c("input.dependency_grouping == 'Pain and Abuse' && input.dependency_grouping == 'Poisoning by Opiates'"),
+         condition = "input.dependency_grouping.length == 2",
 
     absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE, draggable = TRUE, bottom = 0 , right = "auto", left = -5, top = "auto", width = 760, height= 10,
-                 tags$p(tags$strong(tags$u("Indexed Opioid Visit Rate")),tags$strong(": "), tags$i(tags$span(style="color:red",'Normalized mean for the opioid visit and line of business selected per 1000 people for Excellus counites')))
+                 tags$p(tags$strong(tags$u("Indexed Pain and Abuse/Poisoning by Opiates Visit Rate")),tags$strong(": "), tags$i(tags$span(style="color:red",'Normalized mean for the Indexed Pain and Abuse/Poisoning by Opiates visit and line of business selected per 1000 people for Excellus counites')))
                   
                   
               
@@ -158,6 +159,7 @@ ui<- fluidPage(
                   
     )
  ) 
+
   ))
 
 
@@ -179,7 +181,10 @@ server <- function(input, output) {
     { 
       stop(safeError('Please select a "Visit" in the Map Explorer Panel'))
     }
-if(input$dependency_grouping=='Pain and Abuse') {
+    
+     
+ 
+if("Pain and Abuse" %in% input$dependency_grouping  && !("Poisoning by Opiates" %in% input$dependency_grouping)) {
 
   if(length(input$visit)==1)
     { 
@@ -339,7 +344,7 @@ if(input$dependency_grouping=='Pain and Abuse') {
     }
     
 }
-    else if (input$dependency_grouping=='Poisoning by Opiates') {
+    else if (!("Pain and Abuse" %in% input$dependency_grouping)  && "Poisoning by Opiates" %in% input$dependency_grouping) {
 
   if(length(input$visit)==1)
     { 
@@ -510,8 +515,9 @@ print(c("df",df))
     }
     
 }
-    else if (input$dependency_grouping %in% "Pain and Abuse" & input$dependency_grouping %in% "Poisoning by Opiates") {
-print("Dependence")
+       
+     else if ("Pain and Abuse" %in% input$dependency_grouping  && "Poisoning by Opiates" %in% input$dependency_grouping) {
+print("Pineapple")
   if(length(input$visit)==1)
     { 
       #opioid_df$Year<- as.character(opioid_df$Year)
@@ -699,7 +705,7 @@ counties2@data[is.na(counties2@data)] <- 0
   
 
    output$map<- renderLeaflet({
-     if (input$dependency_grouping=='Pain and Abuse') {
+     if ("Pain and Abuse" %in% input$dependency_grouping  && !("Poisoning by Opiates" %in% input$dependency_grouping)) {
 
     
     pal <- colorNumeric(
@@ -707,6 +713,8 @@ counties2@data[is.na(counties2@data)] <- 0
       domain = map()@data[,20])
 
     print(c("Test1",map()@data[,20]))
+    print("1")
+    
     
    # prettyNum(map()@data[,20], big.mark = ",")
    # CartoDB.DarkMatter #Esri.WorldGrayCanvas##7f0000
@@ -724,14 +732,17 @@ counties2@data[is.na(counties2@data)] <- 0
                       pal = pal, values = ~map()@data[,20]
                       ,title = 'Indexed Pain and Abuse Visit <br>Rate per 1000: ') %>% 
       addPolygons(data = Excellus_regions.polygons, fill = FALSE, color = '#f93', weight = 5)#"#084594"
-     } else if (input$dependency_grouping=='Poisoning by Opiates') {
+     } else if (!("Pain and Abuse" %in% input$dependency_grouping)  && "Poisoning by Opiates" %in% input$dependency_grouping) { 
      
    
     pal <- colorNumeric(
       palette = "viridis",#Blue#Reds
       domain = map()@data[,20])
 
-    print(c("Test1",map()@data[,20]))
+   #  print(c(input$dependency_grouping,map()@data[,20])) #Test1 # Chip Edit
+    
+   #  print("2")
+    
     
    # prettyNum(map()@data[,20], big.mark = ",")
    # CartoDB.DarkMatter #Esri.WorldGrayCanvas##7f0000
@@ -750,15 +761,16 @@ counties2@data[is.na(counties2@data)] <- 0
                       ,title = 'Indexed Diagnosis Visit <br>Rate per 1000: ') %>% 
       addPolygons(data = Excellus_regions.polygons, fill = FALSE, color = '#f93', weight = 5)#"#084594"
        
-     } else if (input$dependency_grouping %in% "Pain and Abuse" & input$dependency_grouping %in% "Poisoning by Opiates") {
-     
+     } else if("Pain and Abuse" %in% input$dependency_grouping  && "Poisoning by Opiates" %in% input$dependency_grouping) {
+ 
     
     
     pal <- colorNumeric(
       palette = "viridis",#Blue#Reds
       domain = map()@data[,20])
 
-    print(c("Test1",map()@data[,20]))
+   #  print(c("Test1",map()@data[,20]))
+   #  print("3")
     
    # prettyNum(map()@data[,20], big.mark = ",")
    # CartoDB.DarkMatter #Esri.WorldGrayCanvas##7f0000
@@ -812,28 +824,28 @@ renderDataTable({
     Excellus$PainandAbuse.Indexed.ER.rate<- as.integer((Excellus$PainandAbuse.ER.visit.rate/mean(Excellus$PainandAbuse.ER.visit.rate, na.rm=TRUE))*100)
     print(c("Index1",Excellus$PainandAbuse.ER.visit.rate))
      Excellus$Diagnosis.Indexed.ER.rate<- as.integer((Excellus$Diagnosis.ER.visit.rate/mean(Excellus$Diagnosis.ER.visit.rate, na.rm=TRUE))*100)
-      Excellus$PainAbuseDiagnosis.Indexed.ER.rate<- as.integer((Excellus$PainAbuseDiagnosis.ER.visit.rate/mean(Excellus$PainAbuseDiagnosis.ER.visit.rate, na.rm=TRUE))*100)
+      
       
     Excellus$PainandAbuse.Indexed.Inpatient.rate<- as.integer((Excellus$PainandAbuse.Inpatient.visit.rate/mean(Excellus$PainandAbuse.Inpatient.visit.rate, na.rm=TRUE))*100)
     Excellus$Diagnosis.Indexed.Inpatient.rate<- as.integer((Excellus$Diagnosis.Inpatient.visit.rate/mean(Excellus$Diagnosis.Inpatient.visit.rate, na.rm=TRUE))*100)
-    Excellus$PainAbuseDiagnosis.Indexed.Inpatient.rate<- as.integer((Excellus$PainAbuseDiagnosis.Inpatient.visit.rate/mean(Excellus$PainAbuseDiagnosis.Inpatient.visit.rate, na.rm=TRUE))*100)
+   
     
     Excellus$PainandAbuse.Indexed.Outpatient.rate<- as.integer((Excellus$PainandAbuse.Outpatient.visit.rate/mean(Excellus$PainandAbuse.Outpatient.visit.rate, na.rm=TRUE))*100)
     Excellus$Diagnosis.Indexed.Outpatient.rate<- as.integer((Excellus$Diagnosis.Outpatient.visit.rate/mean(Excellus$Diagnosis.Outpatient.visit.rate, na.rm=TRUE))*100)
-    Excellus$PainAbuseDiagnosis.Indexed.Outpatient.rate<- as.integer((Excellus$PainAbuseDiagnosis.Outpatient.visit.rate/mean(Excellus$PainAbuseDiagnosis.Outpatient.visit.rate, na.rm=TRUE))*100)
+    
     
     Excellus$PainandAbuse.Indexed.Professional.rate<- as.integer((Excellus$PainandAbuse.Professional.visit.rate/mean(Excellus$PainandAbuse.Professional.visit.rate, na.rm=TRUE))*100)
     Excellus$Diagnosis.Indexed.Professional.rate<- as.integer((Excellus$Diagnosis.Professional.visit.rate/mean(Excellus$Diagnosis.Professional.visit.rate, na.rm=TRUE))*100)
-    Excellus$PainAbuseDiagnosis.Indexed.Professional.rate<- as.integer((Excellus$PainAbuseDiagnosis.Professional.visit.rate/mean(Excellus$PainAbuseDiagnosis.Professional.visit.rate, na.rm=TRUE))*100)
+    
     
     Excellus$PainandAbuse.Indexed.Other.rate<- as.integer((Excellus$PainandAbuse.Other.visit.rate/mean(Excellus$PainandAbuse.Other.visit.rate, na.rm=TRUE))*100)
     
     Excellus$Diagnosis.Indexed.Other.rate<- as.integer((Excellus$Diagnosis.Other.visit.rate/mean(Excellus$Diagnosis.Other.visit.rate, na.rm=TRUE))*100)
-    Excellus$PainAbuseDiagnosis.Indexed.Other.rate<- as.integer((Excellus$PainAbuseDiagnosis.Other.visit.rate/mean(Excellus$PainAbuseDiagnosis.Other.visit.rate, na.rm=TRUE))*100)
+    
     
     Excellus$PainandAbuse.Indexed.Overall.rate<- as.integer((Excellus$PainandAbuse.Overall.visit.rate/mean(Excellus$PainandAbuse.Overall.visit.rate, na.rm=TRUE))*100)
     Excellus$Diagnosis.Indexed.Overall.rate<- as.integer((Excellus$Diagnosis.Overall.visit.rate/mean(Excellus$Diagnosis.Overall.visit.rate, na.rm=TRUE))*100)
-    Excellus$PainAbuseDiagnosis.Indexed.Overall.rate<- as.integer((Excellus$PainAbuseDiagnosis.Overall.visit.rate/mean(Excellus$PainAbuseDiagnosis.Overall.visit.rate, na.rm=TRUE))*100)
+    
     
     
     Excellus_display<- Excellus[, c(1:5,7:9,46,47,11,12,14:16,49,50,18,19,21:23,52,53,25,26,28:30,55,56,32,33,35:37,58,59,39,40,42:44,61,62 )]
@@ -844,7 +856,7 @@ renderDataTable({
                                   'Pain and Abuse Outpatient Visit', 'Poisoning by Opiates Outpatient Visit', 'Total Outpatient Visit','Pain and Abuse Outpatient Visit Rate per 1000','Poisoning by Opiates Outpatient Visit Rate per 1000', 'Pain and Abuse Indexed Outpatient Rate', 'Poisoning by Opiates Indexed Outpatient Rate', 
                                   'Pain and Abuse Professional Visit', 'Poisoning by Opiates Professional Visit', 'Total Professional Visit','Pain and Abuse Professional Visit Rate per 1000','Poisoning by Opiates Professional Visit Rate per 1000', 'Pain and Abuse Indexed Professional Rate', 'Poisoning by Opiates Indexed Professional Rate', 
                                   'Pain and Abuse Other Visit', 'Poisoning by Opiates Other Visit', 'Total Other Visit','Pain and Abuse Other Visit Rate per 1000','Poisoning by Opiates Other Visit Rate per 1000', 'Pain and Abuse Indexed Other Rate', 'Poisoning by Opiates Indexed Other Rate', 
-                                  'Pain and Abuse Overall Visit', 'Poisoning by Opiates Overall Visit', 'Total Overall Visit', 'Pain and Abuse Overall Visit Rate', 'Poisoning by Opiates Overall Visit Rate','Pain and Abuse Indexed Overall Rate','Poisoning by Opiates Indexed Overall Rate')
+                                  'Pain and Abuse Overall Visit', 'Poisoning by Opiates Overall Visit', 'Total Overall Visit', 'Pain and Abuse Overall Visit Rate per 1000', 'Poisoning by Opiates Overall Visit Rate per 1000','Pain and Abuse Indexed Overall Rate','Poisoning by Opiates Indexed Overall Rate')
   
 
 
@@ -854,7 +866,7 @@ renderDataTable({
                                   'Pain and Abuse Outpatient Visit', 'Poisoning by Opiates Outpatient Visit', 'Total Outpatient Visit','Pain and Abuse Outpatient Visit Rate per 1000','Poisoning by Opiates Outpatient Visit Rate per 1000', 'Pain and Abuse Indexed Outpatient Rate', 'Poisoning by Opiates Indexed Outpatient Rate', 
                                   'Pain and Abuse Professional Visit', 'Poisoning by Opiates Professional Visit', 'Total Professional Visit','Pain and Abuse Professional Visit Rate per 1000','Poisoning by Opiates Professional Visit Rate per 1000', 'Pain and Abuse Indexed Professional Rate', 'Poisoning by Opiates Indexed Professional Rate', 
                                   'Pain and Abuse Other Visit', 'Poisoning by Opiates Other Visit', 'Total Other Visit','Pain and Abuse Other Visit Rate per 1000','Poisoning by Opiates Other Visit Rate per 1000', 'Pain and Abuse Indexed Other Rate', 'Poisoning by Opiates Indexed Other Rate', 
-                                  'Pain and Abuse Overall Visit', 'Poisoning by Opiates Overall Visit', 'Total Overall Visit', 'Pain and Abuse Overall Visit Rate', 'Poisoning by Opiates Overall Visit Rate','Pain and Abuse Indexed Overall Rate','Poisoning by Opiates Indexed Overall Rate'), '')
+                                  'Pain and Abuse Overall Visit', 'Poisoning by Opiates Overall Visit', 'Total Overall Visit', 'Pain and Abuse Overall Visit Rate per 1000', 'Poisoning by Opiates Overall Visit Rate per 1000','Pain and Abuse Indexed Overall Rate','Poisoning by Opiates Indexed Overall Rate'), '')
   }, options= list(
     
     
@@ -868,18 +880,37 @@ renderDataTable({
 
 ### ![](./tab-filler.png) Data Dictonary
 
-#### Opioid-Related Facility Visits in Excellus Counties ####{style="text-align:center"}
-
-#### ####{style="text-align:left"}
 
 
 ```{r}
 
-renderTable({
+shinyApp(
+  
+  ui = fluidPage(
     
-    print(opioid_df_dictionary[-2,])
-   
-  })
+    fluidRow(
+      column(6, offset=4, HTML('<font color="#317ec8"><h4 style="text-align:center">Opioid-Related Facility Visits in Excellus Counties</h4></font>'))
+      
+      
+    ),
+    fluidRow(column(12,br())),
+    
+    fluidRow(
+      column(12, tableOutput("try"))
+    )
+    
+  )
+  ,
+  
+  server = function(input, output){
+    
+    output$try<- renderTable({
+      
+      print(opioid_df_dictionary[-2,])
+    })
+  }
+  
+)
 
 ```
 
