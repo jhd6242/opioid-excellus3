@@ -168,8 +168,8 @@ server <- function(input, output) {
   
    print("hi****************4 ") 
   df<- eventReactive(input$goButton,{
-
-    if(length(input$visit)==0 & length(input$payer)==0)
+print(c("Pomegranate",length(input$dependency_grouping)))
+ if(length(input$visit)==0 & length(input$payer)==0)
     {
       stop(safeError('Please select a "Visit" and a "Line of Business" in the Map Explorer Panel'))
     }
@@ -178,9 +178,9 @@ server <- function(input, output) {
       stop(safeError('Please select a "Line of Business" in the Map Explorer Panel'))
     }
     else if(length(input$visit)==0)
-    { 
+    {
       stop(safeError('Please select a "Visit" in the Map Explorer Panel'))
-    }
+    }   
     
      
  
@@ -754,11 +754,11 @@ counties2@data[is.na(counties2@data)] <- 0
                   ,weight = 1.5
                   ,dashArray='4'
                   ,popup = paste0(
-                    "<span style='color: #2c7fb8'><strong>",map()@data$NAME_2,"</span></strong><br><strong>", 'Total number of Visits: ', "</strong>",prettyNum(map()@data[,19], big.mark = ","),"<br><strong>",'Number of Visits with Diagnosis Code: ', "</strong>",prettyNum(map()@data[,18], big.mark = ","),"<br><strong>",'Diagnosis Visit rate: ', "</strong>",round(map()@data$Actual.Opioid.Visit.Rate,3),"<br><strong>",'Indexed Diagnosis Visit rate: ', "</strong>",round(map()@data[,20],1),  "<br><strong>", "Excellus Region: " ,"</strong>", map()@data$region
+                    "<span style='color: #2c7fb8'><strong>",map()@data$NAME_2,"</span></strong><br><strong>", 'Total number of Visits: ', "</strong>",prettyNum(map()@data[,19], big.mark = ","),"<br><strong>",'Number of Visits with Poisoning by Opiates Code: ', "</strong>",prettyNum(map()@data[,18], big.mark = ","),"<br><strong>",'Poisoning by Opiates Visit rate: ', "</strong>",round(map()@data$Actual.Opioid.Visit.Rate,3),"<br><strong>",'Indexed Poisoning by Opiates Visit rate: ', "</strong>",round(map()@data[,20],1),  "<br><strong>", "Excellus Region: " ,"</strong>", map()@data$region
                   )
      ) %>% addLegend(position = "topleft",
                       pal = pal, values = ~map()@data[,20]
-                      ,title = 'Indexed Diagnosis Visit <br>Rate per 1000: ') %>% 
+                      ,title = 'Indexed Poisoning by Opiates Visit <br>Rate per 1000: ') %>% 
       addPolygons(data = Excellus_regions.polygons, fill = FALSE, color = '#f93', weight = 5)#"#084594"
        
      } else if("Pain and Abuse" %in% input$dependency_grouping  && "Poisoning by Opiates" %in% input$dependency_grouping) {
@@ -782,14 +782,19 @@ counties2@data[is.na(counties2@data)] <- 0
                   ,weight = 1.5
                   ,dashArray='4'
                   ,popup = paste0(
-                    "<span style='color: #2c7fb8'><strong>",map()@data$NAME_2,"</span></strong><br><strong>", 'Total number of Visits: ', "</strong>",prettyNum(map()@data[,19], big.mark = ","),"<br><strong>",'Number of Visits with PainAbuseDiagnosis Code: ', "</strong>",prettyNum(map()@data[,18], big.mark = ","),"<br><strong>",'PainAbuseDiagnosis Visit rate: ', "</strong>",round(map()@data$Actual.Opioid.Visit.Rate,3),"<br><strong>",'Indexed PainAbuseDiagnosis Visit rate: ', "</strong>",round(map()@data[,20],1),  "<br><strong>", "Excellus Region: " ,"</strong>", map()@data$region
+                    "<span style='color: #2c7fb8'><strong>",map()@data$NAME_2,"</span></strong><br><strong>", 'Total number of Visits: ', "</strong>",prettyNum(map()@data[,19], big.mark = ","),"<br><strong>",'Number of Visits with Indexed Pain and Abuse/Poisoning by Opiates Code: ', "</strong>",prettyNum(map()@data[,18], big.mark = ","),"<br><strong>",'Indexed Pain and Abuse/Poisoning by Opiates Visit rate: ', "</strong>",round(map()@data$Actual.Opioid.Visit.Rate,3),"<br><strong>",'Indexed Patient Visit rate: ', "</strong>",round(map()@data[,20],1),  "<br><strong>", "Excellus Region: " ,"</strong>", map()@data$region
                   )
      ) %>% addLegend(position = "topleft",
                       pal = pal, values = ~map()@data[,20]
-                      ,title = 'Indexed PainAbuseDiagnosis Visit <br>Rate per 1000: ') %>% 
+                      ,title = 'Indexed Indexed Pain and Abuse/Poisoning by Opiates Visit <br>Rate per 1000: ') %>% 
       addPolygons(data = Excellus_regions.polygons, fill = FALSE, color = '#f93', weight = 5)#"#084594"
        
      }
+    else if(!("Pain and Abuse" %in% input$dependency_grouping)  && !("Poisoning by Opiates" %in% input$dependency_grouping) & length(input$visit)==0 & length(input$payer)==0) { stop(safeError('Please select a "Visit", "Line of Business" and "Opioid Grouping" in the Map Explorer Panel'))}
+    else if(!("Pain and Abuse" %in% input$dependency_grouping)  && !("Poisoning by Opiates" %in% input$dependency_grouping) & length(input$visit)==0) { stop(safeError('Please select a "Visit" and "Opioid Grouping" in the Map Explorer Panel'))}
+    else if(!("Pain and Abuse" %in% input$dependency_grouping)  && !("Poisoning by Opiates" %in% input$dependency_grouping) & length(input$payer)==0) { stop(safeError('Please select a "Line of Business" and "Opioid Grouping" in the Map Explorer Panel'))}
+    else if(!("Pain and Abuse" %in% input$dependency_grouping)  && !("Poisoning by Opiates" %in% input$dependency_grouping)) { stop(safeError('Please select a "Opioid Grouping" in the Map Explorer Panel'))}
+     
   })
   
 
